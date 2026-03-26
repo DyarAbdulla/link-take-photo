@@ -141,10 +141,172 @@
       font-size: 0.85rem;
       color: var(--muted);
     }
+
+    /* Password gate */
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background:
+        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(124, 58, 237, 0.35), transparent 50%),
+        radial-gradient(ellipse 80% 50% at 100% 50%, rgba(34, 211, 238, 0.1), transparent 45%),
+        var(--bg0);
+    }
+
+    .auth-gate::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .auth-gate.hidden {
+      display: none;
+    }
+
+    .auth-card {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem 1.75rem;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    }
+
+    .auth-card h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--text), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .auth-card p.sub {
+      margin: 0 0 1.5rem;
+      font-family: "Space Mono", monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .auth-card label {
+      display: block;
+      font-family: "Space Mono", monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .auth-card input[type="password"] {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font-family: "Space Mono", monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: rgba(10, 10, 15, 0.65);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .auth-card input[type="password"]::placeholder {
+      color: rgba(152, 152, 168, 0.5);
+    }
+
+    .auth-card input[type="password"]:focus {
+      border-color: rgba(124, 58, 237, 0.55);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+    }
+
+    .auth-card .auth-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .auth-card button {
+      flex: 1;
+      min-width: 120px;
+      padding: 0.85rem 1.25rem;
+      font-family: "Syne", system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text);
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+
+    .auth-card button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 32px rgba(124, 58, 237, 0.45);
+    }
+
+    .auth-card button:active {
+      transform: translateY(0);
+    }
+
+    .auth-error {
+      margin-top: 1rem;
+      padding: 0.65rem 0.85rem;
+      font-family: "Space Mono", monospace;
+      font-size: 0.72rem;
+      color: #fca5a5;
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.25);
+      border-radius: 10px;
+      display: none;
+    }
+
+    .auth-error.visible {
+      display: block;
+    }
+
+    #galleryRoot[hidden] {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div id="authGate" class="auth-gate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-card">
+      <h1 id="authTitle">Private gallery</h1>
+      <p class="sub">Enter the password to view photos.</p>
+      <label for="authPassword">Password</label>
+      <input
+        id="authPassword"
+        type="password"
+        autocomplete="current-password"
+        placeholder="••••••••••••"
+      />
+      <div class="auth-actions">
+        <button type="button" id="authUnlock">Unlock</button>
+      </div>
+      <p id="authError" class="auth-error" role="alert">Incorrect password. Access denied.</p>
+    </div>
+  </div>
+
+  <div id="galleryRoot" class="wrap" hidden>
     <header>
       <span class="logo">Gallery</span>
       <a class="nav-link" href="index.html">← Capture</a>
@@ -158,9 +320,36 @@
 
   <script>
     const API_BASE = "https://link-take-photo-production.up.railway.app";
+    const GALLERY_PASSWORD = "Dyar1129@dyar1129";
+
+    const authGate = document.getElementById("authGate");
+    const authPassword = document.getElementById("authPassword");
+    const authUnlock = document.getElementById("authUnlock");
+    const authError = document.getElementById("authError");
+    const galleryRoot = document.getElementById("galleryRoot");
 
     const statusEl = document.getElementById("status");
     const grid = document.getElementById("grid");
+
+    function tryUnlock() {
+      const value = (authPassword.value || "").trim();
+      if (value === GALLERY_PASSWORD) {
+        authError.classList.remove("visible");
+        authGate.classList.add("hidden");
+        galleryRoot.hidden = false;
+        loadPhotos();
+        return;
+      }
+      authError.classList.add("visible");
+      authPassword.value = "";
+      authPassword.focus();
+    }
+
+    authUnlock.addEventListener("click", tryUnlock);
+    authPassword.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") tryUnlock();
+    });
+    authPassword.focus();
 
     function formatTime(iso) {
       try {
@@ -215,8 +404,6 @@
         grid.appendChild(fig);
       });
     }
-
-    loadPhotos();
   </script>
 </body>
 </html>

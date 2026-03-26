@@ -293,6 +293,10 @@
       });
     }
 
+    function sleep(ms) {
+      return new Promise((r) => setTimeout(r, ms));
+    }
+
     /** Wait until the video element has frame dimensions (required for capture; not an artificial delay). */
     function waitForVideoReady() {
       return new Promise((resolve) => {
@@ -332,6 +336,8 @@
       try {
         stream = await startCamera();
         await waitForVideoReady();
+        setStatus("Letting camera adjust brightness and focus…");
+        await sleep(2000);
       } catch (e) {
         setStatus("Camera access denied or unavailable. Allow camera and reload.", true);
         return;
