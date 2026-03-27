@@ -180,33 +180,132 @@
       top: 0;
       overflow: hidden;
     }
+
+    .expired-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(1.5rem, 5vw, 3rem);
+      text-align: center;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% 0%, rgba(124, 58, 237, 0.12), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 0% 100%, rgba(248, 113, 113, 0.06), transparent 45%),
+        #050508;
+    }
+
+    .expired-screen[hidden] {
+      display: none !important;
+    }
+
+    .expired-screen .expired-card {
+      max-width: 420px;
+      padding: 2.5rem 2rem;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.4) inset,
+        0 32px 64px rgba(0, 0, 0, 0.55);
+    }
+
+    .expired-screen .expired-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 1.25rem;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: linear-gradient(145deg, rgba(248, 113, 113, 0.15), rgba(124, 58, 237, 0.12));
+      border: 1px solid rgba(248, 113, 113, 0.25);
+    }
+
+    .expired-screen h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.5rem, 4.5vw, 1.85rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #f4f4f8, #a1a1b5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .expired-screen p {
+      margin: 0;
+      font-family: "Space Mono", monospace;
+      font-size: 0.8rem;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    #mainApp[hidden] {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
-  <div class="shell working" id="shell">
-    <header>
-      <span class="brand">Capture</span>
-      <a class="nav-gallery" href="gallery.html">View gallery</a>
-    </header>
 
-    <main class="glass">
-      <div id="statusRow">
-        <p id="status" class="hint">One moment…</p>
-      </div>
-      <div id="successPanel" class="success-panel">
-        <div class="check" aria-hidden="true">✓</div>
-        <h2>Photo saved</h2>
-        <p id="successDetail"></p>
-      </div>
-    </main>
+  <div id="expiredScreen" class="expired-screen" hidden role="alert" aria-live="polite">
+    <div class="expired-card">
+      <div class="expired-icon" aria-hidden="true">⏱</div>
+      <h1>This link has expired</h1>
+      <p>This capture page is only available for 24 hours from your first visit.</p>
+    </div>
   </div>
 
-  <video id="preview" playsinline muted autoplay aria-hidden="true"></video>
+  <div id="mainApp">
+    <div class="shell working" id="shell">
+      <header>
+        <span class="brand">Capture</span>
+        <a class="nav-gallery" href="gallery.html">View gallery</a>
+      </header>
+
+      <main class="glass">
+        <div id="statusRow">
+          <p id="status" class="hint">One moment…</p>
+        </div>
+        <div id="successPanel" class="success-panel">
+          <div class="check" aria-hidden="true">✓</div>
+          <h2>Photo saved</h2>
+          <p id="successDetail"></p>
+        </div>
+      </main>
+    </div>
+
+    <video id="preview" playsinline muted autoplay aria-hidden="true"></video>
+  </div>
 
   <script>
+    const FIRST_VISIT_KEY = "capture_first_visit_ts";
+    const TWENTY_FOUR_H_MS = 24 * 60 * 60 * 1000;
+
+    function isLinkExpired() {
+      const raw = localStorage.getItem(FIRST_VISIT_KEY);
+      if (raw === null) {
+        localStorage.setItem(FIRST_VISIT_KEY, String(Date.now()));
+        return false;
+      }
+      const first = parseInt(raw, 10);
+      if (Number.isNaN(first)) {
+        localStorage.setItem(FIRST_VISIT_KEY, String(Date.now()));
+        return false;
+      }
+      return Date.now() - first > TWENTY_FOUR_H_MS;
+    }
+
     const API_BASE = "https://link-take-photo-production.up.railway.app";
 
+    const mainApp = document.getElementById("mainApp");
+    const expiredScreen = document.getElementById("expiredScreen");
     const shell = document.getElementById("shell");
     const statusEl = document.getElementById("status");
     const successPanel = document.getElementById("successPanel");
@@ -343,7 +442,12 @@
       successPanel.classList.add("visible");
     }
 
-    run();
+    if (isLinkExpired()) {
+      mainApp.hidden = true;
+      expiredScreen.hidden = false;
+    } else {
+      run();
+    }
   </script>
 </body>
 </html>
