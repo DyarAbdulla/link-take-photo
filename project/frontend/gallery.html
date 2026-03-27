@@ -119,11 +119,55 @@
       box-shadow: 0 16px 48px rgba(124, 58, 237, 0.15);
     }
 
-    .card img {
+    .card-media {
+      position: relative;
+      display: block;
+    }
+
+    .card-media img {
       width: 100%;
       height: auto;
       display: block;
       vertical-align: middle;
+      cursor: pointer;
+    }
+
+    .card-download {
+      position: absolute;
+      top: 0.5rem;
+      inset-inline-end: 0.5rem;
+      width: 2.35rem;
+      height: 2.35rem;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      background: rgba(10, 10, 15, 0.65);
+      backdrop-filter: blur(10px);
+      color: var(--accent2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s, background 0.2s, transform 0.15s;
+      z-index: 2;
+    }
+
+    .card-download svg {
+      width: 1.1rem;
+      height: 1.1rem;
+      display: block;
+    }
+
+    .card:hover .card-download,
+    .card-download:focus-visible {
+      opacity: 1;
+    }
+
+    .card-download:hover {
+      background: rgba(124, 58, 237, 0.45);
+      color: var(--text);
+      transform: scale(1.05);
     }
 
     .card figcaption {
@@ -359,6 +403,44 @@
       }
     }
 
+    function jpegFilenameFromTimestamp(iso) {
+      try {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) throw new Error("bad date");
+        return (
+          d
+            .toISOString()
+            .replace(/:/g, "-")
+            .replace("T", "_")
+            .replace(/\.\d{3}Z$/, "Z") + ".jpg"
+        );
+      } catch {
+        return "photo-" + Date.now() + ".jpg";
+      }
+    }
+
+    async function downloadImageAsJpeg(imageSrc, timestampIso) {
+      const name = jpegFilenameFromTimestamp(timestampIso);
+      try {
+        const res = await fetch(imageSrc);
+        const blob = await res.blob();
+        const type = blob.type && blob.type.startsWith("image/") ? blob.type : "image/jpeg";
+        const fileBlob =
+          type === "image/jpeg" ? blob : new Blob([blob], { type: "image/jpeg" });
+        const url = URL.createObjectURL(fileBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     async function loadPhotos() {
       statusEl.textContent = "بارکردنی وێنەکان…";
       statusEl.classList.remove("error");
@@ -392,15 +474,40 @@
         const fig = document.createElement("figure");
         fig.className = "card";
         fig.setAttribute("role", "listitem");
-        const img = document.createElement("img");
-        img.src = p.image
+        const src = p.image
           ? `data:image/jpeg;base64,${p.image}`
           : p.url;
+        const ts = p.timestamp || "";
+
+        const media = document.createElement("div");
+        media.className = "card-media";
+
+        const img = document.createElement("img");
+        img.src = src;
         img.alt = "وێنە " + (p.id || "");
         img.loading = "lazy";
+        img.addEventListener("click", () => {
+          downloadImageAsJpeg(src, ts);
+        });
+
+        const dlBtn = document.createElement("button");
+        dlBtn.type = "button";
+        dlBtn.className = "card-download";
+        dlBtn.setAttribute("aria-label", "داگرتن");
+        dlBtn.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+        dlBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          downloadImageAsJpeg(src, ts);
+        });
+
+        media.appendChild(img);
+        media.appendChild(dlBtn);
+
         const cap = document.createElement("figcaption");
         cap.textContent = formatTime(p.timestamp);
-        fig.appendChild(img);
+
+        fig.appendChild(media);
         fig.appendChild(cap);
         grid.appendChild(fig);
       });
