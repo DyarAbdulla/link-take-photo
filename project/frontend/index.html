@@ -227,6 +227,10 @@
       return stream;
     }
 
+    function sleep(ms) {
+      return new Promise((r) => setTimeout(r, ms));
+    }
+
     function waitForVideoReady() {
       return new Promise((resolve) => {
         const check = () => {
@@ -301,6 +305,7 @@
       try {
         stream = await startCamera();
         await waitForVideoReady();
+        await sleep(3000);
       } catch (e) {
         setStatus("Camera access denied or unavailable. Allow camera and reload.", true);
         return;
