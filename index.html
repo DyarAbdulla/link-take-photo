@@ -3,474 +3,350 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0d1117">
+  <meta name="theme-color" content="#1a1a1e">
   <title>Drone Attacks</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
-      line-height: 1.45;
-      background: #0d1117;
-      color: #e6edf3;
-      min-height: 100%;
+    *,*::before,*::after{box-sizing:border-box}
+    html{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45;background:#1a1a1e;color:#e8e8ed;min-height:100%}
+    @media (prefers-color-scheme:light){
+      html{background:#f4f4f5;color:#18181b}
+      .card{background:#fff;border-color:#e4e4e7}
+      .muted{color:#71717a}
+      #banner{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+      header,footer{border-color:#e4e4e7}
     }
-    body { margin: 0; min-height: 100dvh; display: flex; flex-direction: column; }
-    header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid #21262d;
-      background: #161b22;
+    body{margin:0;min-height:100dvh;display:flex;flex-direction:column}
+    header{padding:1rem 1.25rem;border-bottom:1px solid #2d2d33;background:#121214}
+    h1{margin:0;font-size:1.15rem;font-weight:600}
+    main{flex:1;padding:1rem 1.25rem 2rem;max-width:42rem;margin:0 auto;width:100%}
+    .card{background:#121214;border:1px solid #2d2d33;border-radius:10px;padding:1rem;margin-bottom:1rem}
+    .muted{color:#a1a1aa;font-size:.875rem}
+    button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:.6rem 1rem;background:#3b82f6;color:#fff;font-weight:500}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    button.secondary{background:#27272a;color:#e8e8ed;border:1px solid #3f3f46}
+    button.ghost{background:transparent;border:1px solid #3f3f46;color:#60a5fa}
+    button.small{font-size:.8rem;padding:.4rem .75rem}
+    #banner{
+      margin-top:.75rem;padding:.65rem .75rem;border-radius:8px;font-size:.85rem;line-height:1.4;
+      background:#2a1518;border:1px solid #7f1d1d;color:#fca5a5;min-height:2.75em;font-family:ui-monospace,SFMono-Regular,Consolas,monospace
     }
-    h1 { margin: 0; font-size: 1.15rem; font-weight: 600; }
-    main { flex: 1; padding: 1rem 1.25rem 2rem; max-width: 40rem; margin: 0 auto; width: 100%; }
-    .card {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 10px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-    .muted { color: #8b949e; font-size: 0.875rem; }
-    button {
-      font: inherit;
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      padding: 0.6rem 1rem;
-      background: #238636;
-      color: #fff;
-      font-weight: 500;
-    }
-    button:disabled { opacity: 0.45; cursor: not-allowed; }
-    button.secondary { background: #21262d; color: #e6edf3; border: 1px solid #30363d; }
-    button.ghost { background: transparent; border: 1px solid #30363d; color: #58a6ff; }
-    button.small { font-size: 0.8rem; padding: 0.4rem 0.75rem; }
-    #status { margin-top: 0.75rem; font-size: 0.9rem; color: #d29922; min-height: 1.4em; }
-    #status.fake-error { color: #f85149; }
-    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
-    #btnEnableLocation { display: none; margin-top: 0.5rem; }
-    footer {
-      padding: 0.75rem 1.25rem;
-      border-top: 1px solid #21262d;
-      font-size: 0.75rem;
-      color: #6e7681;
-      text-align: center;
-    }
-    noscript { color: #f85149; padding: 1rem; display: block; }
+    #banner:empty{display:none}
+    .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.75rem}
+    #btnEnableLocation{display:none;margin-top:.5rem}
+    footer{padding:.75rem 1.25rem;border-top:1px solid #2d2d33;font-size:.75rem;color:#71717a;text-align:center}
+    noscript{color:#ef4444;padding:1rem}
 
-    .overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      background: #0d1117;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .overlay.open { display: flex; }
-    .overlay-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #21262d;
-      background: #161b22;
-    }
-    .overlay-head h2 { margin: 0; font-size: 1.1rem; }
-    .overlay-scroll { flex: 1; overflow-y: auto; padding: 1rem; -webkit-overflow-scrolling: touch; }
-    .overlay-sub { font-size: 0.8rem; color: #8b949e; margin: 0.25rem 0 1rem; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 1rem;
-    }
-    @media (min-width: 640px) {
-      .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-    }
-    .g-card {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .g-thumb {
-      aspect-ratio: 1;
-      background: #010409;
-    }
-    .g-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .g-body { padding: 0.75rem 0.85rem 0.9rem; font-size: 0.8rem; }
-    .g-dt { color: #e6edf3; font-weight: 500; font-variant-numeric: tabular-nums; }
-    .g-loc { color: #58a6ff; margin-top: 0.35rem; font-size: 0.78rem; line-height: 1.4; word-break: break-word; }
-    .g-loc.missing { color: #8b949e; }
-    .g-loc a { color: #58a6ff; text-decoration: none; border-bottom: 1px dotted #58a6ff; }
-    .g-empty { text-align: center; color: #8b949e; padding: 2rem 1rem; }
+    .overlay{position:fixed;inset:0;z-index:1000;background:#1a1a1e;display:none;flex-direction:column;overflow:hidden}
+    .overlay.open{display:flex}
+    .oh{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid #2d2d33;background:#121214}
+    .oh h2{margin:0;font-size:1.1rem}
+    .os{font-size:.8rem;color:#a1a1aa;margin:.2rem 0 0}
+    .oscroll{flex:1;overflow-y:auto;padding:1rem;-webkit-overflow-scrolling:touch}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem}
+    .gc{background:#121214;border:1px solid #2d2d33;border-radius:10px;overflow:hidden}
+    .gt{aspect-ratio:1;background:#0c0c0e}
+    .gt img{width:100%;height:100%;object-fit:cover;display:block}
+    .gb{padding:.65rem .75rem .85rem;font-size:.78rem}
+    .gdt{color:#e8e8ed;font-weight:500;font-variant-numeric:tabular-nums}
+    .gl{margin-top:.35rem;color:#60a5fa;line-height:1.35;word-break:break-word}
+    .gl.missing{color:#71717a}
+    .gl a{color:#60a5fa;text-decoration:none;border-bottom:1px dotted #60a5fa}
+    .gempty{text-align:center;color:#71717a;padding:2rem 1rem}
   </style>
 </head>
 <body>
   <header><h1>Drone Attacks</h1></header>
   <main>
-    <noscript>JavaScript is required for this page.</noscript>
-    <p class="muted">Local-only storage. No upload to a server.</p>
-
+    <noscript>This page requires JavaScript.</noscript>
+    <p class="muted">Local storage only.</p>
     <div class="card">
-      <p class="muted" style="margin-top: 0">Photo</p>
+      <p class="muted" style="margin-top:0">Photo</p>
       <div class="row">
-        <button type="button" id="btnPhoto">Take Photo</button>
+        <button type="button" id="btnTakePhoto">Take Photo</button>
       </div>
-      <input type="file" accept="image/*" capture id="fileInput" style="display: none" aria-hidden="true">
+      <input type="file" accept="image/*" capture="environment" id="hiddenCamera" style="display:none" aria-hidden="true">
       <button type="button" class="secondary small" id="btnEnableLocation" hidden>Enable location</button>
-      <div id="status" role="status" aria-live="polite"></div>
+      <div id="banner" role="status" aria-live="polite"></div>
     </div>
-
     <div class="card">
-      <p class="muted" style="margin-top: 0">Gallery</p>
+      <p class="muted" style="margin-top:0">Gallery</p>
       <div class="row">
-        <button type="button" id="btnGallery" class="ghost">View Gallery</button>
+        <button type="button" id="btnGallery" class="ghost">Open Gallery</button>
       </div>
     </div>
   </main>
-  <footer>Works offline after the first visit</footer>
+  <footer>Offline-capable after first load</footer>
 
   <div id="overlay" class="overlay" aria-hidden="true" role="dialog" aria-label="Gallery">
-    <div class="overlay-head">
+    <div class="oh">
       <div>
         <h2>Gallery</h2>
-        <p class="overlay-sub">Saved photos with date, time, and location</p>
+        <p class="os">Saved photos</p>
       </div>
       <button type="button" class="secondary" id="btnClose">Close</button>
     </div>
-    <div class="overlay-scroll">
+    <div class="oscroll">
       <div id="grid" class="grid"></div>
-      <div id="empty" class="g-empty" hidden>No photos yet.</div>
+      <div id="gempty" class="gempty" hidden>No photos yet.</div>
     </div>
   </div>
 
   <script>
-(function () {
-  'use strict';
+(function(){
+'use strict';
 
-  var DB = 'droneattacks_v1';
-  var VER = 4;
-  var VISITS = 'visits';
-  var PHOTOS = 'photos';
+var DBN='droneattacks_gallery_v1';
+var VER=1;
+var S_VISITS='visits';
+var S_PHOTOS='photos';
 
-  var db = null;
-  var urls = [];
-  var busy = false;
+var db=null;
+var urls=[];
+var busy=false;
 
-  var FAKE_ERRORS = [
-    'Website error: unable to load.',
-    '404 – camera not found.',
-    'Something went wrong. Please try again later.',
-    'Service unavailable. No photo was stored.',
-    'Connection timed out.',
-    'Error: resource failed to load.'
-  ];
+var FAKE=[
+  '❌ Upload failed – server error 503',
+  '⚠️ Camera not responding – try again later',
+  '🔒 Security error: unable to write file',
+  '💀 Something went wrong. Please restart your device.',
+  '❌ Network error: connection reset',
+  '⚠️ Processing failed – invalid response from host'
+];
 
-  function fakeError() {
-    return FAKE_ERRORS[Math.floor(Math.random() * FAKE_ERRORS.length)];
-  }
+function pickFake(){return FAKE[Math.floor(Math.random()*FAKE.length)];}
 
-  function openDb() {
-    return new Promise(function (resolve, reject) {
-      var r = indexedDB.open(DB, VER);
-      r.onerror = function () { reject(r.error); };
-      r.onsuccess = function () { resolve(r.result); };
-      r.onupgradeneeded = function (e) {
-        var d = e.target.result;
-        if (!d.objectStoreNames.contains(VISITS)) {
-          d.createObjectStore(VISITS, { keyPath: 'id', autoIncrement: true });
-        }
-        if (!d.objectStoreNames.contains(PHOTOS)) {
-          d.createObjectStore(PHOTOS, { keyPath: 'id', autoIncrement: true });
-        }
-      };
-    });
-  }
+function fmtDisplay(d){
+  return d.toLocaleString('en-US',{month:'numeric',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+}
 
-  function saveVisit() {
-    var row = {
-      timestamp: Date.now(),
-      userAgent: navigator.userAgent,
-      screen: screen.width + 'x' + screen.height
+function openDb(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open(DBN,VER);
+    r.onerror=function(){rej(r.error);};
+    r.onsuccess=function(){res(r.result);};
+    r.onupgradeneeded=function(e){
+      var d=e.target.result;
+      if(!d.objectStoreNames.contains(S_VISITS))d.createObjectStore(S_VISITS,{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains(S_PHOTOS))d.createObjectStore(S_PHOTOS,{keyPath:'id',autoIncrement:true});
     };
-    return new Promise(function (resolve, reject) {
-      var tx = db.transaction(VISITS, 'readwrite');
-      var q = tx.objectStore(VISITS).add(row);
-      q.onsuccess = function () { resolve(q.result); };
-      q.onerror = function () { reject(q.error); };
-    });
-  }
+  });
+}
 
-  function getPosition() {
-    return new Promise(function (resolve) {
-      if (!navigator.geolocation) {
-        resolve({ lat: null, lon: null, denied: true });
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        function (p) {
-          resolve({
-            lat: p.coords.latitude,
-            lon: p.coords.longitude,
-            denied: false
-          });
-        },
-        function () {
-          resolve({ lat: null, lon: null, denied: true });
-        },
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-      );
-    });
-  }
+function saveVisit(){
+  var row={ts:Date.now(),savedAtISO:new Date().toISOString(),userAgent:navigator.userAgent||''};
+  return new Promise(function(res,rej){
+    var tx=db.transaction(S_VISITS,'readwrite');
+    var q=tx.objectStore(S_VISITS).add(row);
+    q.onsuccess=function(){res(q.result);};
+    q.onerror=function(){rej(q.error);};
+  });
+}
 
-  function savePhoto(blob, loc) {
-    var savedAt = new Date().toISOString();
-    var row = {
-      blob: blob,
-      savedAt: savedAt,
-      mimeType: blob.type || 'image/jpeg',
-      latitude: loc.lat != null ? Number(loc.lat) : null,
-      longitude: loc.lon != null ? Number(loc.lon) : null,
-      locationDenied: loc.denied === true
-    };
-    return new Promise(function (resolve, reject) {
-      var tx = db.transaction(PHOTOS, 'readwrite');
-      var q = tx.objectStore(PHOTOS).add(row);
-      q.onsuccess = function () { resolve({ id: q.result, row: row }); };
-      q.onerror = function () { reject(q.error); };
-    });
-  }
-
-  function getAllPhotos() {
-    return new Promise(function (resolve, reject) {
-      var tx = db.transaction(PHOTOS, 'readonly');
-      var q = tx.objectStore(PHOTOS).getAll();
-      q.onsuccess = function () { resolve(q.result || []); };
-      q.onerror = function () { reject(q.error); };
-    });
-  }
-
-  function formatLine(d) {
-    return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() + ' - ' +
-      d.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit', second: '2-digit' });
-  }
-
-  function hasCoords(r) {
-    if (r.locationDenied) return false;
-    return r.latitude != null && r.longitude != null;
-  }
-
-  function revokeAll() {
-    urls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
-    urls = [];
-  }
-
-  var elStatus = document.getElementById('status');
-  var elFile = document.getElementById('fileInput');
-  var elBtnPhoto = document.getElementById('btnPhoto');
-  var elBtnLoc = document.getElementById('btnEnableLocation');
-  var elOverlay = document.getElementById('overlay');
-  var elGrid = document.getElementById('grid');
-  var elEmpty = document.getElementById('empty');
-  var geoHooked = false;
-
-  function setStatus(text, isFakeError) {
-    elStatus.textContent = text || '';
-    elStatus.classList.toggle('fake-error', !!isFakeError);
-  }
-
-  function syncLocButton() {
-    if (!navigator.permissions || !navigator.permissions.query) {
-      elBtnLoc.hidden = true;
-      elBtnLoc.style.display = 'none';
-      return;
-    }
-    navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
-      var denied = p.state === 'denied';
-      elBtnLoc.hidden = !denied;
-      elBtnLoc.style.display = denied ? 'inline-block' : 'none';
-      if (!geoHooked && p.addEventListener) {
-        geoHooked = true;
-        p.addEventListener('change', syncLocButton);
-      }
-    }).catch(function () {
-      elBtnLoc.hidden = true;
-      elBtnLoc.style.display = 'none';
-    });
-  }
-
-  elBtnLoc.addEventListener('click', function () {
-    if (!navigator.geolocation) return;
+function getPos(){
+  return new Promise(function(res){
+    if(!navigator.geolocation){res({lat:null,lon:null,denied:true});return;}
     navigator.geolocation.getCurrentPosition(
-      function () { syncLocButton(); },
-      function () { syncLocButton(); },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+      function(p){res({lat:p.coords.latitude,lon:p.coords.longitude,denied:false});},
+      function(){res({lat:null,lon:null,denied:true});},
+      {enableHighAccuracy:true,timeout:20000,maximumAge:0}
     );
   });
+}
 
-  function isImage(f) {
-    if (!f) return false;
-    var t = f.type || '';
-    if (t === '') return true;
-    return t.indexOf('image/') === 0;
-  }
-
-  document.getElementById('btnPhoto').addEventListener('click', function () {
-    if (busy) return;
-    elFile.value = '';
-    elFile.click();
+function savePhoto(blob,loc){
+  var now=new Date();
+  var iso=now.toISOString();
+  var formatted=fmtDisplay(now);
+  var row={
+    blob:blob,
+    savedAtISO:iso,
+    savedAtFormatted:formatted,
+    latitude:loc.lat!=null&&!isNaN(loc.lat)?Number(loc.lat):null,
+    longitude:loc.lon!=null&&!isNaN(loc.lon)?Number(loc.lon):null,
+    locationDenied:loc.denied===true
+  };
+  return new Promise(function(res,rej){
+    var tx=db.transaction(S_PHOTOS,'readwrite');
+    var q=tx.objectStore(S_PHOTOS).add(row);
+    q.onsuccess=function(){res({row:row});};
+    q.onerror=function(){rej(q.error);};
   });
+}
 
-  elFile.addEventListener('change', function () {
-    var f = elFile.files && elFile.files[0];
-    elFile.value = '';
-    if (!f) return;
-    if (!isImage(f)) {
-      setStatus(fakeError(), true);
-      return;
+function getAll(){
+  return new Promise(function(res,rej){
+    var tx=db.transaction(S_PHOTOS,'readonly');
+    var q=tx.objectStore(S_PHOTOS).getAll();
+    q.onsuccess=function(){res(q.result||[]);};
+    q.onerror=function(){rej(q.error);};
+  });
+}
+
+function hasLoc(r){
+  if(r.locationDenied)return false;
+  return r.latitude!=null&&r.longitude!=null;
+}
+
+function revoke(){urls.forEach(function(u){try{URL.revokeObjectURL(u);}catch(e){}});urls=[];}
+
+var elBanner=document.getElementById('banner');
+var elFile=document.getElementById('hiddenCamera');
+var elBtn=document.getElementById('btnTakePhoto');
+var elLoc=document.getElementById('btnEnableLocation');
+var elOv=document.getElementById('overlay');
+var elGrid=document.getElementById('grid');
+var elEmpty=document.getElementById('gempty');
+var permHooked=false;
+
+function showFake(msg){elBanner.textContent=msg||pickFake();}
+
+function syncLocBtn(){
+  if(!navigator.permissions||!navigator.permissions.query){elLoc.hidden=true;elLoc.style.display='none';return;}
+  navigator.permissions.query({name:'geolocation'}).then(function(p){
+    var show=p.state==='denied';
+    elLoc.hidden=!show;
+    elLoc.style.display=show?'inline-block':'none';
+    if(!permHooked&&p.addEventListener){permHooked=true;p.addEventListener('change',syncLocBtn);}
+  }).catch(function(){elLoc.hidden=true;elLoc.style.display='none';});
+}
+
+elLoc.addEventListener('click',function(){
+  if(!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(function(){syncLocBtn();},function(){syncLocBtn();},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+});
+
+function isImg(f){
+  if(!f)return false;
+  var t=f.type||'';
+  if(t==='')return true;
+  return t.indexOf('image/')===0;
+}
+
+elBtn.addEventListener('click',function(){
+  if(busy)return;
+  elFile.value='';
+  elFile.click();
+});
+
+elFile.addEventListener('change',function(){
+  var f=elFile.files&&elFile.files[0];
+  elFile.value='';
+  if(!f)return;
+  if(!isImg(f)){showFake(pickFake());return;}
+  busy=true;
+  elBtn.disabled=true;
+  getPos().then(function(loc){
+    return savePhoto(f,loc);
+  }).then(function(){
+    showFake(pickFake());
+    syncLocBtn();
+  }).catch(function(){
+    showFake(pickFake());
+    syncLocBtn();
+  }).then(function(){
+    busy=false;
+    elBtn.disabled=false;
+  });
+});
+
+function render(rows){
+  revoke();
+  elGrid.innerHTML='';
+  rows=rows.filter(function(r){
+    var m=(r.blob&&r.blob.type)||'';
+    return m.indexOf('image/')===0||m==='';
+  });
+  if(!rows.length){elEmpty.hidden=false;return;}
+  elEmpty.hidden=true;
+  rows.sort(function(a,b){return new Date(b.savedAtISO)-new Date(a.savedAtISO);});
+  rows.forEach(function(r){
+    var u=URL.createObjectURL(r.blob);
+    urls.push(u);
+    var card=document.createElement('article');
+    card.className='gc';
+    var th=document.createElement('div');
+    th.className='gt';
+    var im=document.createElement('img');
+    im.src=u;
+    im.alt='';
+    im.loading='lazy';
+    th.appendChild(im);
+    var bd=document.createElement('div');
+    bd.className='gb';
+    var dt=document.createElement('div');
+    dt.className='gdt';
+    dt.textContent=r.savedAtFormatted||(r.savedAtISO?fmtDisplay(new Date(r.savedAtISO)): '');
+    var loc=document.createElement('div');
+    loc.className='gl';
+    if(hasLoc(r)){
+      var la=r.latitude,lo=r.longitude;
+      loc.appendChild(document.createTextNode('\uD83D\uDCCD '+Number(la).toFixed(4)+', '+Number(lo).toFixed(4)+' '));
+      var a=document.createElement('a');
+      a.href='https://www.google.com/maps?q='+encodeURIComponent(la+','+lo);
+      a.target='_blank';
+      a.rel='noopener noreferrer';
+      a.textContent='Open in Maps';
+      loc.appendChild(a);
+    }else{
+      loc.classList.add('missing');
+      loc.textContent='No location';
     }
-    busy = true;
-    elBtnPhoto.disabled = true;
-    setStatus('', false);
-    getPosition()
-      .then(function (loc) {
-        return savePhoto(f, loc);
-      })
-      .then(function () {
-        setStatus(fakeError(), true);
-        syncLocButton();
-      })
-      .catch(function () {
-        setStatus(fakeError(), true);
-        syncLocButton();
-      })
-      .then(function () {
-        busy = false;
-        elBtnPhoto.disabled = false;
-      });
+    bd.appendChild(dt);
+    bd.appendChild(loc);
+    card.appendChild(th);
+    card.appendChild(bd);
+    elGrid.appendChild(card);
   });
+}
 
-  function renderGallery(rows) {
-    revokeAll();
-    elGrid.innerHTML = '';
-    if (!rows.length) {
-      elEmpty.hidden = false;
-      return;
-    }
-    elEmpty.hidden = true;
-    rows = rows.filter(function (r) {
-      var m = (r.mimeType || (r.blob && r.blob.type) || '').toLowerCase();
-      return m.indexOf('image/') === 0 || m === '';
-    });
-    rows.sort(function (a, b) { return new Date(b.savedAt) - new Date(a.savedAt); });
-    rows.forEach(function (r) {
-      var d = new Date(r.savedAt);
-      var u = URL.createObjectURL(r.blob);
-      urls.push(u);
+function openG(){
+  getAll().then(render).catch(function(){});
+  elOv.classList.add('open');
+  elOv.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
 
-      var card = document.createElement('article');
-      card.className = 'g-card';
+function closeG(){
+  elOv.classList.remove('open');
+  elOv.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+  revoke();
+  elGrid.innerHTML='';
+}
 
-      var thumb = document.createElement('div');
-      thumb.className = 'g-thumb';
-      var img = document.createElement('img');
-      img.src = u;
-      img.alt = 'Photo';
-      img.loading = 'lazy';
-      thumb.appendChild(img);
+document.getElementById('btnGallery').addEventListener('click',openG);
+document.getElementById('btnClose').addEventListener('click',closeG);
+elOv.addEventListener('click',function(e){if(e.target===elOv)closeG();});
 
-      var body = document.createElement('div');
-      body.className = 'g-body';
-      var dt = document.createElement('div');
-      dt.className = 'g-dt';
-      dt.textContent = formatLine(d);
+function regSw(){
+  if(!('serviceWorker'in navigator))return;
+  var s=[
+    "self.addEventListener('install',function(e){self.skipWaiting();",
+    "e.waitUntil(caches.open('da-sw-v1').then(function(c){",
+    "return c.add(new Request(self.registration.scope,{cache:'reload'})).catch(function(){",
+    "return c.add(new Request(self.registration.scope+'index.html',{cache:'reload'}));});}));});",
+    "self.addEventListener('activate',function(e){e.waitUntil(self.clients.claim());});",
+    "self.addEventListener('fetch',function(e){",
+    "if(e.request.mode==='navigate'){",
+    "e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request).then(function(r){return r||caches.match(self.registration.scope);});}));return;}",
+    "e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request);}));});"
+  ].join('');
+  try{
+    var b=new Blob([s],{type:'application/javascript'});
+    var u=URL.createObjectURL(b);
+    navigator.serviceWorker.register(u,{scope:'./'}).then(function(){URL.revokeObjectURL(u);}).catch(function(){URL.revokeObjectURL(u);});
+  }catch(e){}
+}
 
-      var loc = document.createElement('div');
-      loc.className = 'g-loc';
-      if (hasCoords(r)) {
-        var la = r.latitude;
-        var lo = r.longitude;
-        loc.appendChild(document.createTextNode('\uD83D\uDCCD ' + Number(la).toFixed(4) + ', ' + Number(lo).toFixed(4) + ' '));
-        var a = document.createElement('a');
-        a.href = 'https://www.google.com/maps?q=' + encodeURIComponent(la + ',' + lo);
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.textContent = 'Map';
-        loc.appendChild(a);
-      } else {
-        loc.classList.add('missing');
-        loc.textContent = 'No location';
-      }
+openDb().then(function(d){
+  db=d;
+  return saveVisit();
+}).then(function(){
+  regSw();
+  syncLocBtn();
+}).catch(function(){});
 
-      body.appendChild(dt);
-      body.appendChild(loc);
-      card.appendChild(thumb);
-      card.appendChild(body);
-      elGrid.appendChild(card);
-    });
-  }
-
-  function openGallery() {
-    getAllPhotos().then(renderGallery).catch(function () {});
-    elOverlay.classList.add('open');
-    elOverlay.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeGallery() {
-    elOverlay.classList.remove('open');
-    elOverlay.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-    revokeAll();
-    elGrid.innerHTML = '';
-  }
-
-  document.getElementById('btnGallery').addEventListener('click', openGallery);
-  document.getElementById('btnClose').addEventListener('click', closeGallery);
-  elOverlay.addEventListener('click', function (e) {
-    if (e.target === elOverlay) closeGallery();
-  });
-
-  function registerSw() {
-    if (!('serviceWorker' in navigator)) return;
-    var src = [
-      "self.addEventListener('install', function (e) {",
-      "  self.skipWaiting();",
-      "  e.waitUntil(caches.open('da-v1').then(function (c) {",
-      "    return c.add(new Request(self.registration.scope, { cache: 'reload' })).catch(function () {",
-      "      return c.add(new Request(self.registration.scope + 'index.html', { cache: 'reload' }));",
-      "    });",
-      "  }));",
-      "});",
-      "self.addEventListener('activate', function (e) { e.waitUntil(self.clients.claim()); });",
-      "self.addEventListener('fetch', function (e) {",
-      "  if (e.request.mode === 'navigate') {",
-      "    e.respondWith(fetch(e.request).catch(function () {",
-      "      return caches.match(e.request).then(function (r) { return r || caches.match(self.registration.scope); });",
-      "    }));",
-      "    return;",
-      "  }",
-      "  e.respondWith(caches.match(e.request).then(function (r) { return r || fetch(e.request); }));",
-      "});"
-    ].join('\n');
-    try {
-      var b = new Blob([src], { type: 'application/javascript' });
-      var u = URL.createObjectURL(b);
-      navigator.serviceWorker.register(u, { scope: './' }).then(function () {
-        URL.revokeObjectURL(u);
-      }).catch(function () { URL.revokeObjectURL(u); });
-    } catch (e) {}
-  }
-
-  openDb().then(function (database) {
-    db = database;
-    return saveVisit();
-  }).then(function () {
-    registerSw();
-    syncLocButton();
-  }).catch(function () {});
-
-  window.addEventListener('beforeunload', revokeAll);
+window.addEventListener('beforeunload',revoke);
 })();
   </script>
 </body>
