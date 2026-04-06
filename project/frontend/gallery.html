@@ -306,6 +306,7 @@
         radial-gradient(ellipse 120% 80% at 50% -20%, rgba(124, 58, 237, 0.35), transparent 50%),
         radial-gradient(ellipse 80% 50% at 100% 50%, rgba(34, 211, 238, 0.1), transparent 45%),
         var(--bg0);
+      animation: authFadeIn 0.35s ease-out;
     }
 
     .auth-gate::before {
@@ -319,6 +320,15 @@
 
     .auth-gate.hidden {
       display: none;
+    }
+
+    @keyframes authFadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
     .auth-card {
@@ -447,7 +457,7 @@
       padding: clamp(0.5rem, 2vw, 1.25rem);
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.28s ease, visibility 0.28s linear;
+      transition: opacity 0.32s ease, visibility 0.32s linear;
       -webkit-tap-highlight-color: transparent;
       pointer-events: none;
     }
@@ -491,6 +501,7 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
+      flex-wrap: wrap;
       gap: 0.4rem;
       padding: 0.5rem 0.6rem;
       background: linear-gradient(180deg, rgba(12, 12, 18, 0.95), rgba(12, 12, 18, 0.85));
@@ -535,7 +546,6 @@
     }
 
     .lightbox-btn.close-btn {
-      margin-inline-end: auto;
       border-color: rgba(248, 113, 113, 0.35);
       color: #fca5a5;
     }
@@ -599,7 +609,7 @@
 
     .lightbox-transform {
       will-change: transform;
-      transition: transform 0.18s ease-out;
+      transition: transform 0.22s cubic-bezier(0.33, 1, 0.68, 1);
     }
 
     .lightbox-transform.no-transition {
@@ -648,10 +658,10 @@
   </style>
 </head>
 <body>
-  <div id="authGate" class="auth-gate hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div id="authGate" class="auth-gate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="auth-card">
-      <h1 id="authTitle">Gallery</h1>
-      <p class="sub">Enter the gallery password from your host (e.g. Railway <code>GALLERY_PASSWORD</code>).</p>
+      <h1 id="authTitle">Protected gallery</h1>
+      <p class="sub">Enter the gallery password to view photos. Your session is remembered until you close the tab.</p>
       <label for="authPassword">Password</label>
       <input
         id="authPassword"
@@ -689,14 +699,6 @@
     <div class="lightbox-backdrop" id="lightboxBackdrop" aria-hidden="true"></div>
     <div class="lightbox-panel">
       <div class="lightbox-toolbar">
-        <button
-          type="button"
-          class="lightbox-btn close-btn"
-          id="lightboxClose"
-          aria-label="Close"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
         <button type="button" class="lightbox-btn" id="lightboxZoomOut" aria-label="Zoom out">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
         </button>
@@ -705,6 +707,14 @@
         </button>
         <button type="button" class="lightbox-btn" id="lightboxDownload" aria-label="Download image">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button
+          type="button"
+          class="lightbox-btn close-btn"
+          id="lightboxClose"
+          aria-label="Close"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </div>
       <div class="lightbox-main">
@@ -726,7 +736,9 @@
 
   <script>
     const API_BASE = "https://link-take-photo-production.up.railway.app";
-    const STORAGE_KEY = "gallery_password";
+    /** Must match server GALLERY_PASSWORD (default in API). */
+    const GALLERY_PASSWORD = "Dyar1129@dyarm";
+    const STORAGE_KEY = "gallery_session_password";
 
     const authGate = document.getElementById("authGate");
     const authPassword = document.getElementById("authPassword");
@@ -739,15 +751,19 @@
 
     function galleryHeaders() {
       const pwd = sessionStorage.getItem(STORAGE_KEY) || "";
-      const h = {};
-      if (pwd) h["X-Gallery-Password"] = pwd;
-      return h;
+      return { "X-Gallery-Password": pwd };
     }
 
     function tryUnlock() {
       const value = (authPassword.value || "").trim();
-      sessionStorage.setItem(STORAGE_KEY, value);
       authError.classList.remove("visible");
+      if (value !== GALLERY_PASSWORD) {
+        authError.classList.add("visible");
+        authPassword.value = "";
+        authPassword.focus();
+        return;
+      }
+      sessionStorage.setItem(STORAGE_KEY, GALLERY_PASSWORD);
       loadPhotos();
     }
 
@@ -1214,11 +1230,10 @@
       }
 
       if (res.status === 401) {
+        sessionStorage.removeItem(STORAGE_KEY);
         authGate.classList.remove("hidden");
         galleryRoot.hidden = true;
-        if (sessionStorage.getItem(STORAGE_KEY)) {
-          authError.classList.add("visible");
-        }
+        authError.classList.add("visible");
         authPassword.value = "";
         authPassword.focus();
         return;
@@ -1248,38 +1263,18 @@
 
     async function bootstrap() {
       const saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved) {
+      if (saved && saved !== GALLERY_PASSWORD) {
+        sessionStorage.removeItem(STORAGE_KEY);
+      }
+      if (sessionStorage.getItem(STORAGE_KEY) === GALLERY_PASSWORD) {
+        authGate.classList.add("hidden");
+        galleryRoot.hidden = false;
         await loadPhotos();
         return;
       }
-      const probe = await fetch(`${API_BASE}/photos`, {
-        cache: "default",
-        headers: {},
-      });
-      if (probe.status === 401) {
-        authGate.classList.remove("hidden");
-        galleryRoot.hidden = true;
-        authPassword.focus();
-        return;
-      }
-      if (!probe.ok) {
-        const t = await probe.text();
-        let err;
-        try {
-          err = JSON.parse(t);
-        } catch {
-          err = {};
-        }
-        statusEl.textContent =
-          "Could not load photos: " + (err.detail || t || probe.status);
-        statusEl.classList.add("error");
-        galleryRoot.hidden = false;
-        return;
-      }
-      const data = await probe.json();
-      authGate.classList.add("hidden");
-      galleryRoot.hidden = false;
-      renderFolders(data);
+      authGate.classList.remove("hidden");
+      galleryRoot.hidden = true;
+      authPassword.focus();
     }
 
     bootstrap();

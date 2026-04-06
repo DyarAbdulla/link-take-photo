@@ -15,8 +15,8 @@ from pydantic import BaseModel, Field
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-# If set, GET /photos requires header X-Gallery-Password with this value (set in Railway/hosting env).
-GALLERY_PASSWORD = (os.getenv("GALLERY_PASSWORD") or "").strip()
+# GET /photos requires header X-Gallery-Password. Override with GALLERY_PASSWORD env (e.g. Railway).
+GALLERY_PASSWORD = (os.getenv("GALLERY_PASSWORD") or "Dyar1129@dyarm").strip()
 database = Database(DATABASE_URL)
 
 
@@ -98,8 +98,6 @@ def validate_location(lat: float | None, lon: float | None, acc: float | None) -
 def require_gallery_password(
     x_gallery_password: str | None = Header(None, alias="X-Gallery-Password"),
 ) -> None:
-    if not GALLERY_PASSWORD:
-        return
     if not x_gallery_password or x_gallery_password != GALLERY_PASSWORD:
         raise HTTPException(status_code=401, detail="Invalid gallery password")
 
