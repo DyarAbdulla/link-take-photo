@@ -774,26 +774,32 @@
 <body>
   <div id="authGate" class="auth-gate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="auth-card">
-      <h1 id="authTitle">Admin login</h1>
-      <p class="sub">Sign in with your admin email and password. Session is kept until you close this tab.</p>
-      <label for="loginEmail">Email</label>
-      <input
-        id="loginEmail"
-        type="email"
-        autocomplete="username"
-        placeholder="you@example.com"
-      />
-      <label for="loginPassword">Password</label>
-      <input
-        id="loginPassword"
-        type="password"
-        autocomplete="current-password"
-        placeholder="••••••••••••"
-      />
-      <div class="auth-actions">
-        <button type="button" id="btnLogin">Login</button>
-      </div>
-      <p id="loginError" class="auth-error" role="alert">Invalid email or password.</p>
+      <form id="loginForm" novalidate>
+        <h1 id="authTitle">Admin login</h1>
+        <p class="sub">Sign in with your admin email and password. Session is kept until you close this tab.</p>
+        <label for="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="username"
+          placeholder="you@example.com"
+          required
+        />
+        <label for="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="••••••••••••"
+          required
+        />
+        <div class="auth-actions">
+          <button type="submit" id="btnLogin">Login</button>
+        </div>
+        <p id="loginError" class="auth-error" role="alert">Invalid email or password.</p>
+      </form>
     </div>
   </div>
 
@@ -874,7 +880,7 @@
 
     function validateLogin(email, password) {
       const inputEmail = (email || "").trim().toLowerCase();
-      const inputPassword = (password || "").trim();
+      const inputPassword = password == null ? "" : String(password);
       return (
         inputEmail === ADMIN_EMAIL.toLowerCase() &&
         inputPassword === ADMIN_PASSWORD
@@ -882,10 +888,17 @@
     }
 
     const authGate = document.getElementById("authGate");
-    const loginEmail = document.getElementById("loginEmail");
-    const loginPassword = document.getElementById("loginPassword");
-    const btnLogin = document.getElementById("btnLogin");
+    const loginForm = document.getElementById("loginForm");
+    const loginEmail =
+      document.getElementById("email") || document.querySelector('input[type="email"]');
+    const loginPassword =
+      document.getElementById("password") || document.querySelector('input[type="password"]');
     const loginError = document.getElementById("loginError");
+
+    function showLoginError(message) {
+      loginError.textContent = message || "Invalid email or password.";
+      loginError.classList.add("visible");
+    }
     const galleryRoot = document.getElementById("galleryRoot");
     const btnLogout = document.getElementById("btnLogout");
     const adminEmailDisplay = document.getElementById("adminEmailDisplay");
@@ -903,19 +916,48 @@
       };
     }
 
-    function handleLogin() {
-      const email = (loginEmail.value || "").trim();
-      const password = (loginPassword.value || "").trim();
-      loginError.classList.remove("visible");
-      if (!validateLogin(email, password)) {
-        loginError.classList.add("visible");
-        loginPassword.value = "";
-        loginPassword.focus();
+    function handleLogin(e) {
+      if (e) e.preventDefault();
+
+      const emailInput =
+        document.getElementById("email") || document.querySelector('input[type="email"]');
+      const passwordInput =
+        document.getElementById("password") || document.querySelector('input[type="password"]');
+
+      if (!emailInput || !passwordInput) {
+        console.error("Input fields not found");
         return;
       }
-      sessionStorage.setItem(STORAGE_EMAIL_KEY, email);
-      sessionStorage.setItem(STORAGE_PASSWORD_KEY, password);
-      loadPhotos();
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      loginError.classList.remove("visible");
+
+      console.log("Entered email:", email);
+      console.log("Expected email:", ADMIN_EMAIL);
+      console.log("Email match:", email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+      console.log("Entered password:", password);
+      console.log("Expected password:", ADMIN_PASSWORD);
+      console.log("Password match:", password === ADMIN_PASSWORD);
+
+      if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASSWORD) {
+        sessionStorage.setItem(STORAGE_EMAIL_KEY, email);
+        sessionStorage.setItem(STORAGE_PASSWORD_KEY, password);
+        authGate.classList.add("hidden");
+        galleryRoot.hidden = false;
+        loadPhotos();
+      } else {
+        if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+          showLoginError("Email does not match");
+        } else if (password !== ADMIN_PASSWORD) {
+          showLoginError("Password does not match");
+        } else {
+          showLoginError("Invalid email or password");
+        }
+        loginPassword.value = "";
+        loginPassword.focus();
+      }
     }
 
     function logout() {
@@ -927,7 +969,10 @@
       loginEmail.focus();
     }
 
-    btnLogin.addEventListener("click", handleLogin);
+    loginForm.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      handleLogin(ev);
+    });
     btnLogout.addEventListener("click", logout);
     loginPassword.addEventListener("keydown", (e) => {
       if (e.key === "Enter") handleLogin();
