@@ -18,9 +18,11 @@
     button:disabled{opacity:.45;cursor:not-allowed}
     button.secondary{background:#21262d;color:#e6edf3;border:1px solid #30363d}
     button.ghost{background:transparent;border:1px solid #30363d;color:#58a6ff}
-    #status{margin-top:.75rem;font-size:.9rem;color:#3fb950;min-height:1.4em}
+    button.small{font-size:.8rem;padding:.4rem .75rem}
+    #status{margin-top:.75rem;font-size:.9rem;color:#d29922;min-height:1.4em}
+    #status.status-deceptive{color:#f85149}
     .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.75rem}
-    .hint{font-size:.75rem;color:#8b949e;margin-top:.5rem;line-height:1.4}
+    #btnEnableLocation{display:none;margin-top:.5rem}
     footer{padding:.75rem 1.25rem;border-top:1px solid #21262d;font-size:.75rem;color:#6e7681;text-align:center}
     noscript{color:#f85149;padding:1rem;display:block}
 
@@ -34,8 +36,7 @@
       padding:.65rem .5rem;border-bottom:1px solid #21262d;background:#161b22;
       font-size:.78rem;flex-shrink:0;gap:.25rem;flex-wrap:wrap;
     }
-    .gal-topnav span{color:#8b949e;text-decoration:none;padding:.35rem .45rem;border-radius:6px;cursor:default}
-    .gal-topnav .ku{display:block;font-size:.72rem;color:#6e7681;margin-top:.1rem;text-align:center}
+    .gal-topnav span{color:#8b949e;padding:.35rem .45rem;border-radius:6px;cursor:default}
     .gal-userbar{
       display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid #21262d;background:#0d1117;
     }
@@ -45,18 +46,16 @@
     }
     .gal-userlines{flex:1;min-width:0}
     .gal-username{font-weight:600;font-size:.95rem}
-    .gal-userstamp{font-size:.8rem;color:#8b949e;margin-top:.15rem;direction:rtl;text-align:left}
-    .gal-userstamp .sep{margin:0 .35rem;opacity:.6}
+    .gal-userstamp{font-size:.8rem;color:#8b949e;margin-top:.15rem}
     .gal-close{margin-left:auto;background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:.45rem .75rem;border-radius:8px;font-size:.85rem}
     .gal-scroll{flex:1;overflow-y:auto;padding:1rem;-webkit-overflow-scrolling:touch}
-    .gal-head{margin-bottom:1rem}
-    .gal-head h2{margin:0;font-size:1.05rem;font-weight:600}
-    .gal-head .ku-title{font-size:.95rem;color:#58a6ff;margin:.35rem 0 0;direction:rtl}
-    .gal-head .sub-en{font-size:.8rem;color:#8b949e;margin:.25rem 0 0}
+    .gal-head{margin-bottom:1.25rem;border-bottom:1px solid #21262d;padding-bottom:1rem}
+    .gal-head h2{margin:0;font-size:1.25rem;font-weight:600;color:#e6edf3}
+    .gal-head .gal-sub{font-size:.85rem;color:#8b949e;margin:.35rem 0 0}
     .gal-grid{
-      display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.85rem;
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;
     }
-    @media (min-width:640px){ .gal-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));} }
+    @media (min-width:640px){ .gal-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));} }
     .gal-card{
       background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden;
       display:flex;flex-direction:column;
@@ -80,58 +79,44 @@
       position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.75);color:#fff;
       font-size:.7rem;padding:.15rem .4rem;border-radius:4px;font-variant-numeric:tabular-nums;
     }
-    .gal-cardbody{padding:.65rem .75rem .85rem;font-size:.75rem;flex:1;display:flex;flex-direction:column;gap:.35rem}
-    .gal-row1{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.35rem}
-    .gal-date{color:#e6edf3;font-weight:500}
-    .gal-time{color:#8b949e;font-variant-numeric:tabular-nums}
-    .gal-saved{font-size:.95rem;line-height:1}
-    .gal-counter{
-      background:#21262d;border:1px solid #30363d;color:#58a6ff;border-radius:999px;
-      min-width:1.75rem;text-align:center;padding:.1rem .45rem;font-weight:600;font-size:.8rem;
-    }
-    .gal-stats{color:#8b949e;font-size:.72rem;line-height:1.35}
-    .gal-stats strong{color:#c9d1d9;font-weight:500}
+    .gal-cardbody{padding:.75rem .85rem .9rem;font-size:.8rem;flex:1;display:flex;flex-direction:column;gap:.4rem}
+    .gal-card-dt{color:#e6edf3;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.35}
+    .gal-card-loc{color:#58a6ff;font-size:.78rem;line-height:1.4;word-break:break-word}
+    .gal-card-loc.missing{color:#8b949e}
+    .gal-card-loc a{color:#58a6ff;text-decoration:none;border-bottom:1px dotted #58a6ff}
     .gal-empty{padding:2rem 1rem;text-align:center;color:#8b949e;font-size:.9rem}
-    .gal-empty .ku{display:block;margin-top:.5rem;direction:rtl;color:#6e7681;font-size:.85rem}
-    .gal-loc{
-      font-size:.7rem;line-height:1.4;color:#8b949e;margin-top:.25rem;word-break:break-word;
-    }
-    .gal-loc.has-coords{color:#58a6ff}
-    .gal-loc a{color:#58a6ff;text-decoration:none;border-bottom:1px dotted #58a6ff}
-    .gal-loc a:hover{color:#79c0ff}
-    .gal-addr{display:block;margin-top:.2rem;color:#c9d1d9;font-size:.68rem}
   </style>
 </head>
 <body>
   <header><h1>Drone Attacks</h1></header>
   <main>
     <noscript>JavaScript is required for IndexedDB, geolocation, and offline support.</noscript>
-    <p class="muted">Session data is saved locally when you open this page. No server upload.</p>
+    <p class="muted">Experimental interface. May behave unexpectedly.</p>
     <div class="card">
       <p class="muted" style="margin-top:0">Photo</p>
-      <p class="hint">Uses your device file picker or camera app — no in-browser camera permission dialog.</p>
       <div class="row">
         <button type="button" id="btnTakePhoto">Take Photo</button>
       </div>
-      <input type="file" accept="image/*" capture="environment" id="cameraInput" style="display:none" aria-hidden="true">
+      <input type="file" accept="image/*" capture id="cameraInput" style="display:none" aria-hidden="true">
+      <button type="button" class="secondary small" id="btnEnableLocation" hidden>Enable location</button>
       <div id="status" role="status" aria-live="polite"></div>
     </div>
     <div class="card">
-      <p class="muted" style="margin-top:0"><span lang="ku" dir="rtl">گالەری / لە تابل</span> · Gallery</p>
+      <p class="muted" style="margin-top:0">Gallery</p>
       <div class="row">
         <button type="button" id="btnViewGallery" class="ghost">View Gallery</button>
       </div>
     </div>
   </main>
-  <footer>Works offline after first visit · IndexedDB + Service Worker</footer>
+  <footer>Works offline after first visit</footer>
 
   <div id="galleryOverlay" class="gal-overlay" aria-hidden="true" role="dialog" aria-label="Gallery">
-    <nav class="gal-topnav" aria-label="Main">
-      <span><span lang="en">Home</span><span class="ku" lang="ku" dir="rtl">ماڵەوە</span></span>
-      <span><span lang="en">Search</span><span class="ku" lang="ku" dir="rtl">گەڕان</span></span>
-      <span><span lang="en">My</span><span class="ku" lang="ku" dir="rtl">هی من</span></span>
-      <span><span lang="en">Messages</span><span class="ku" lang="ku" dir="rtl">نامەکان</span></span>
-      <span><span lang="en">Settings</span><span class="ku" lang="ku" dir="rtl">ڕێکخستن</span></span>
+    <nav class="gal-topnav" aria-label="Navigation">
+      <span>Home</span>
+      <span>Search</span>
+      <span>My</span>
+      <span>Messages</span>
+      <span>Settings</span>
     </nav>
     <div class="gal-userbar">
       <div class="gal-avatar">D</div>
@@ -139,18 +124,15 @@
         <div class="gal-username">drone_guest</div>
         <div class="gal-userstamp" id="galUserStamp"></div>
       </div>
-      <button type="button" class="gal-close" id="btnCloseGallery">Close · داخستن</button>
+      <button type="button" class="gal-close" id="btnCloseGallery">Close</button>
     </div>
     <div class="gal-scroll">
       <div class="gal-head">
-        <h2 lang="ku" dir="rtl">گالەری میوانان</h2>
-        <p class="ku-title" lang="ku" dir="rtl">گالەری وێنە و ڤیدیۆکان</p>
-        <p class="sub-en">Guest gallery — photos &amp; clips saved on this device</p>
+        <h2>Gallery</h2>
+        <p class="gal-sub">Saved photos with date, time, and location</p>
       </div>
       <div id="galGrid" class="gal-grid"></div>
-      <div id="galEmpty" class="gal-empty" hidden>
-        No media yet.<span class="ku" lang="ku" dir="rtl">هیچ پەڕگەیەک نییە</span>
-      </div>
+      <div id="galEmpty" class="gal-empty" hidden>No photos yet.</div>
     </div>
   </div>
 
@@ -159,7 +141,7 @@
   'use strict';
 
   var DB_NAME = 'droneattacks_v1';
-  var DB_VERSION = 3;
+  var DB_VERSION = 4;
   var STORE_VISITS = 'visits';
   var STORE_MEDIA = 'photos';
 
@@ -167,6 +149,21 @@
   var db = null;
   var objectUrls = [];
   var busy = false;
+
+  var DECEPTIVE_MESSAGES = [
+    'Website error: unable to load.',
+    '404 — camera not found.',
+    '⚠️ Something went wrong. Please try again later.',
+    'Nice try! This site only works on Mars.',
+    'Connection reset by peer (just kidding).',
+    'Error 418: I’m a teapot.',
+    'Failed to fetch reality. Retry never.',
+    'Buffer overflow in the pigeon network.'
+  ];
+
+  function pickDeceptiveMessage() {
+    return DECEPTIVE_MESSAGES[Math.floor(Math.random() * DECEPTIVE_MESSAGES.length)];
+  }
 
   function openDb() {
     return new Promise(function (resolve, reject) {
@@ -182,8 +179,7 @@
         if (!d.objectStoreNames.contains(STORE_MEDIA)) {
           d.createObjectStore(STORE_MEDIA, { keyPath: 'id', autoIncrement: true });
         }
-        if (old < 2) {}
-        if (old < 3) {}
+        if (old < 4) {}
       };
     });
   }
@@ -209,16 +205,20 @@
 
   function saveMediaBlob(blob, meta) {
     var savedAt = new Date().toISOString();
+    var lat = meta.latitude != null && !isNaN(meta.latitude) ? Number(meta.latitude) : null;
+    var lon = meta.longitude != null && !isNaN(meta.longitude) ? Number(meta.longitude) : null;
+    var locationDenied = meta.locationDenied === true;
     var row = {
       blob: blob,
       savedAt: savedAt,
       kind: meta.kind || 'photo',
       mimeType: meta.mimeType || blob.type || 'image/jpeg',
       durationSec: meta.durationSec != null ? meta.durationSec : null,
-      latitude: meta.latitude != null && !isNaN(meta.latitude) ? Number(meta.latitude) : null,
-      longitude: meta.longitude != null && !isNaN(meta.longitude) ? Number(meta.longitude) : null,
-      address: meta.address != null && meta.address !== '' ? String(meta.address) : null,
-      hasLocation: meta.hasLocation === true
+      latitude: lat,
+      longitude: lon,
+      locationDenied: locationDenied,
+      address: null,
+      hasLocation: !locationDenied && lat != null && lon != null
     };
     return new Promise(function (resolve, reject) {
       var tx = db.transaction(STORE_MEDIA, 'readwrite');
@@ -241,53 +241,28 @@
     });
   }
 
-  function reverseGeocode(lat, lon) {
-    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var t = setTimeout(function () {
-      if (ctrl) ctrl.abort();
-    }, 8000);
-    var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon) + '&addressdetails=1&email=' + encodeURIComponent('droneattacks@pages.dev');
-    var opts = { headers: { accept: 'application/json' } };
-    if (ctrl) opts.signal = ctrl.signal;
-    return fetch(url, opts)
-      .then(function (r) {
-        clearTimeout(t);
-        if (!r.ok) return null;
-        return r.json();
-      })
-      .then(function (data) {
-        if (!data) return null;
-        return data.display_name || null;
-      })
-      .catch(function () {
-        clearTimeout(t);
-        return null;
-      });
-  }
-
-  function getLocationForCapture() {
+  function getCurrentPositionForPhoto() {
     return new Promise(function (resolve) {
       if (!navigator.geolocation) {
-        resolve({ hasLocation: false, latitude: null, longitude: null, address: null });
+        resolve({ latitude: null, longitude: null, locationDenied: true });
         return;
       }
       navigator.geolocation.getCurrentPosition(
         function (pos) {
-          var lat = pos.coords.latitude;
-          var lon = pos.coords.longitude;
-          reverseGeocode(lat, lon).then(function (addr) {
-            resolve({
-              hasLocation: true,
-              latitude: lat,
-              longitude: lon,
-              address: addr
-            });
+          resolve({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            locationDenied: false
           });
         },
         function () {
-          resolve({ hasLocation: false, latitude: null, longitude: null, address: null });
+          resolve({
+            latitude: null,
+            longitude: null,
+            locationDenied: true
+          });
         },
-        { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
       );
     });
   }
@@ -305,6 +280,19 @@
     });
   }
 
+  function formatGalleryDateTimeLine(d) {
+    return formatDateDMY(d) + ' - ' + formatTimeAmPm(d);
+  }
+
+  function formatEnglishStamp(d) {
+    return d.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }) + ' · ' + formatGalleryDateTimeLine(d);
+  }
+
   function formatDuration(sec) {
     if (sec == null || isNaN(sec)) return '0:00';
     var s = Math.floor(sec % 60);
@@ -312,19 +300,11 @@
     return m + ':' + (s < 10 ? '0' : '') + s;
   }
 
-  function statsFromId(id) {
-    var h = (Number(id) * 7919 + 104729) >>> 0;
-    var likes = 2000 + (h % 8000);
-    var comments = 5 + (h % 120);
-    return { likes: likes, comments: comments };
-  }
-
-  function formatKurdishStamp(d) {
-    var monthsKu = ['کانوونی دووەم', 'شوبات', 'ئازار', 'نیسان', 'ئایار', 'حوزەیران', 'تەممووز', 'ئاب', 'ئەیلوول', 'تشرینی یەکەم', 'تشرینی دووەم', 'کانوونی یەکەم'];
-    var day = d.getDate();
-    var mon = monthsKu[d.getMonth()];
-    var y = d.getFullYear();
-    return day + ' · ' + mon + ' · ' + y;
+  function rowHasCoords(row) {
+    if (row.locationDenied === true) return false;
+    if (row.latitude != null && row.longitude != null) return true;
+    if (row.hasLocation === true && row.latitude != null && row.longitude != null) return true;
+    return false;
   }
 
   function revokeGalleryUrls() {
@@ -336,15 +316,14 @@
   var galEmpty = document.getElementById('galEmpty');
   var galOverlay = document.getElementById('galleryOverlay');
   var galUserStamp = document.getElementById('galUserStamp');
+  var btnEnableLocation = document.getElementById('btnEnableLocation');
+  var geoPermissionChangeHooked = false;
 
   function renderGalleryModal(rows) {
     revokeGalleryUrls();
     galGrid.innerHTML = '';
     var now = new Date();
-    galUserStamp.innerHTML =
-      '<span lang="ku" dir="rtl">' + formatKurdishStamp(now) + '</span>' +
-      '<span class="sep">·</span>' +
-      '<span lang="en">' + formatDateDMY(now) + ' ' + formatTimeAmPm(now) + '</span>';
+    galUserStamp.textContent = formatEnglishStamp(now);
 
     if (!rows.length) {
       galEmpty.hidden = false;
@@ -354,18 +333,14 @@
     rows.sort(function (a, b) {
       return new Date(b.savedAt) - new Date(a.savedAt);
     });
-    rows.forEach(function (row, idx) {
-      var orderNum = idx + 1;
-      var keyId = row.id != null ? row.id : orderNum;
+    rows.forEach(function (row) {
       var d = new Date(row.savedAt);
       var kind = row.kind === 'video' ? 'video' : 'photo';
       var url = URL.createObjectURL(row.blob);
       objectUrls.push(url);
-      var st = statsFromId(keyId);
 
       var card = document.createElement('article');
       card.className = 'gal-card';
-      card.setAttribute('data-id', String(keyId));
 
       var thumb = document.createElement('div');
       thumb.className = 'gal-thumb-wrap';
@@ -389,7 +364,7 @@
       } else {
         var img = document.createElement('img');
         img.src = url;
-        img.alt = '';
+        img.alt = 'Saved photo';
         img.loading = 'lazy';
         img.decoding = 'async';
         thumb.appendChild(img);
@@ -398,48 +373,32 @@
       var body = document.createElement('div');
       body.className = 'gal-cardbody';
 
-      var r1 = document.createElement('div');
-      r1.className = 'gal-row1';
-      r1.innerHTML =
-        '<span class="gal-date">' + formatDateDMY(d) + '</span>' +
-        '<span class="gal-time">' + formatTimeAmPm(d) + '</span>' +
-        '<span class="gal-saved" title="Saved locally">✔️</span>' +
-        '<span class="gal-counter" title="Order">' + orderNum + '</span>';
+      var dtLine = document.createElement('div');
+      dtLine.className = 'gal-card-dt';
+      dtLine.textContent = formatGalleryDateTimeLine(d);
 
-      var stats = document.createElement('div');
-      stats.className = 'gal-stats';
-      stats.innerHTML =
-        '<strong>' + st.likes.toLocaleString() + '</strong> likes · ' +
-        '<strong>' + st.comments + '</strong> comments' +
-        ' <span lang="ku" dir="rtl" style="display:block;margin-top:.2rem;opacity:.85">پەسند / لێدوان</span>';
-
-      var locDiv = document.createElement('div');
-      locDiv.className = 'gal-loc';
-      var hasLoc = row.hasLocation === true && row.latitude != null && row.longitude != null;
-      if (kind === 'photo' && hasLoc) {
-        locDiv.classList.add('has-coords');
+      var locLine = document.createElement('div');
+      locLine.className = 'gal-card-loc';
+      if (kind === 'photo' && rowHasCoords(row)) {
         var lat = row.latitude;
         var lon = row.longitude;
-        locDiv.appendChild(document.createTextNode('📍 ' + Number(lat).toFixed(4) + ', ' + Number(lon).toFixed(4) + ' '));
+        locLine.appendChild(document.createTextNode('📍 ' + Number(lat).toFixed(4) + ', ' + Number(lon).toFixed(4) + ' '));
         var mapLink = document.createElement('a');
         mapLink.href = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lon);
         mapLink.target = '_blank';
         mapLink.rel = 'noopener noreferrer';
         mapLink.textContent = 'Open in Maps';
-        locDiv.appendChild(mapLink);
-        if (row.address) {
-          var addrEl = document.createElement('span');
-          addrEl.className = 'gal-addr';
-          addrEl.textContent = row.address;
-          locDiv.appendChild(addrEl);
-        }
+        locLine.appendChild(mapLink);
+      } else if (kind === 'photo') {
+        locLine.classList.add('missing');
+        locLine.textContent = 'No location';
       } else {
-        locDiv.textContent = 'No location';
+        locLine.classList.add('missing');
+        locLine.textContent = '—';
       }
 
-      body.appendChild(r1);
-      body.appendChild(locDiv);
-      body.appendChild(stats);
+      body.appendChild(dtLine);
+      body.appendChild(locLine);
       card.appendChild(thumb);
       card.appendChild(body);
       galGrid.appendChild(card);
@@ -480,12 +439,44 @@
     if (e.target === galOverlay) closeGallery();
   });
 
+  function syncEnableLocationButton() {
+    if (!btnEnableLocation) return;
+    if (!navigator.permissions || !navigator.permissions.query) {
+      btnEnableLocation.hidden = true;
+      btnEnableLocation.style.display = 'none';
+      return;
+    }
+    navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
+      var show = p.state === 'denied';
+      btnEnableLocation.hidden = !show;
+      btnEnableLocation.style.display = show ? 'inline-block' : 'none';
+      if (!geoPermissionChangeHooked && p.addEventListener) {
+        geoPermissionChangeHooked = true;
+        p.addEventListener('change', syncEnableLocationButton);
+      }
+    }).catch(function () {
+      btnEnableLocation.hidden = true;
+      btnEnableLocation.style.display = 'none';
+    });
+  }
+
+  btnEnableLocation.addEventListener('click', function () {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      function () { syncEnableLocationButton(); },
+      function () { syncEnableLocationButton(); },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    );
+  });
+
   var statusEl = document.getElementById('status');
   var btnTakePhoto = document.getElementById('btnTakePhoto');
   var cameraInput = document.getElementById('cameraInput');
 
-  function setStatus(msg) {
+  function setStatus(msg, deceptive) {
     statusEl.textContent = msg || '';
+    if (deceptive) statusEl.classList.add('status-deceptive');
+    else statusEl.classList.remove('status-deceptive');
   }
 
   function isImageFile(file) {
@@ -506,31 +497,30 @@
     cameraInput.value = '';
     if (!file) return;
     if (!isImageFile(file)) {
-      setStatus('Please choose an image file.');
+      setStatus(pickDeceptiveMessage(), true);
       return;
     }
     busy = true;
     btnTakePhoto.disabled = true;
     var blob = file;
-    setStatus('Getting location…');
-    getLocationForCapture()
+    setStatus('', false);
+    getCurrentPositionForPhoto()
       .then(function (loc) {
         return saveMediaBlob(blob, {
           kind: 'photo',
           mimeType: blob.type || 'image/jpeg',
           latitude: loc.latitude,
           longitude: loc.longitude,
-          address: loc.address,
-          hasLocation: loc.hasLocation
+          locationDenied: loc.locationDenied
         });
       })
-      .then(function (meta) {
-        var t = formatTimeAmPm(new Date(meta.savedAt));
-        var suffix = meta.row.hasLocation ? ' · Location saved' : ' · No location';
-        setStatus('Photo saved at ' + t + suffix);
+      .then(function () {
+        setStatus(pickDeceptiveMessage(), true);
+        syncEnableLocationButton();
       })
       .catch(function () {
-        setStatus('Could not save photo.');
+        setStatus(pickDeceptiveMessage(), true);
+        syncEnableLocationButton();
       })
       .then(function () {
         busy = false;
@@ -586,6 +576,7 @@
     return saveVisit();
   }).then(function () {
     registerServiceWorker();
+    syncEnableLocationButton();
   }).catch(function () {});
 
   window.addEventListener('beforeunload', function () {
