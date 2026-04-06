@@ -3,136 +3,144 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0a0e14">
+  <meta name="theme-color" content="#0d1117">
   <title>Drone Attacks</title>
   <style>
-    *,*::before,*::after{box-sizing:border-box}
-    html{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;line-height:1.45;background:#0a0e14;color:#e6edf3;min-height:100%}
-    body{margin:0;min-height:100dvh;display:flex;flex-direction:column}
-    header{padding:1rem 1.25rem;border-bottom:1px solid #21262d;background:#0d1117}
-    h1{margin:0;font-size:1.15rem;font-weight:600;letter-spacing:-.02em}
-    main{flex:1;padding:1rem 1.25rem 2rem;max-width:42rem;margin:0 auto;width:100%}
-    .card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:1rem;margin-bottom:1rem}
-    .muted{color:#8b949e;font-size:.875rem}
-    button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:.6rem 1rem;background:#238636;color:#fff;font-weight:500}
-    button:disabled{opacity:.45;cursor:not-allowed}
-    button.secondary{background:#21262d;color:#e6edf3;border:1px solid #30363d}
-    button.ghost{background:transparent;border:1px solid #30363d;color:#58a6ff}
-    button.small{font-size:.8rem;padding:.4rem .75rem}
-    #status{margin-top:.75rem;font-size:.9rem;color:#d29922;min-height:1.4em}
-    #status.status-deceptive{color:#f85149}
-    .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.75rem}
-    #btnEnableLocation{display:none;margin-top:.5rem}
-    footer{padding:.75rem 1.25rem;border-top:1px solid #21262d;font-size:.75rem;color:#6e7681;text-align:center}
-    noscript{color:#f85149;padding:1rem;display:block}
+    *, *::before, *::after { box-sizing: border-box; }
+    html {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+      line-height: 1.45;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100%;
+    }
+    body { margin: 0; min-height: 100dvh; display: flex; flex-direction: column; }
+    header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #21262d;
+      background: #161b22;
+    }
+    h1 { margin: 0; font-size: 1.15rem; font-weight: 600; }
+    main { flex: 1; padding: 1rem 1.25rem 2rem; max-width: 40rem; margin: 0 auto; width: 100%; }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .muted { color: #8b949e; font-size: 0.875rem; }
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      background: #238636;
+      color: #fff;
+      font-weight: 500;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.secondary { background: #21262d; color: #e6edf3; border: 1px solid #30363d; }
+    button.ghost { background: transparent; border: 1px solid #30363d; color: #58a6ff; }
+    button.small { font-size: 0.8rem; padding: 0.4rem 0.75rem; }
+    #status { margin-top: 0.75rem; font-size: 0.9rem; color: #d29922; min-height: 1.4em; }
+    #status.fake-error { color: #f85149; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
+    #btnEnableLocation { display: none; margin-top: 0.5rem; }
+    footer {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid #21262d;
+      font-size: 0.75rem;
+      color: #6e7681;
+      text-align: center;
+    }
+    noscript { color: #f85149; padding: 1rem; display: block; }
 
-    .gal-overlay{
-      position:fixed;inset:0;z-index:1000;background:#0d1117;
-      display:none;flex-direction:column;overflow:hidden;
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: #0d1117;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
     }
-    .gal-overlay.open{display:flex}
-    .gal-topnav{
-      display:flex;justify-content:space-around;align-items:center;
-      padding:.65rem .5rem;border-bottom:1px solid #21262d;background:#161b22;
-      font-size:.78rem;flex-shrink:0;gap:.25rem;flex-wrap:wrap;
+    .overlay.open { display: flex; }
+    .overlay-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #21262d;
+      background: #161b22;
     }
-    .gal-topnav span{color:#8b949e;padding:.35rem .45rem;border-radius:6px;cursor:default}
-    .gal-userbar{
-      display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid #21262d;background:#0d1117;
+    .overlay-head h2 { margin: 0; font-size: 1.1rem; }
+    .overlay-scroll { flex: 1; overflow-y: auto; padding: 1rem; -webkit-overflow-scrolling: touch; }
+    .overlay-sub { font-size: 0.8rem; color: #8b949e; margin: 0.25rem 0 1rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
     }
-    .gal-avatar{
-      width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#238636,#1f6feb);
-      flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:#fff;
+    @media (min-width: 640px) {
+      .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
     }
-    .gal-userlines{flex:1;min-width:0}
-    .gal-username{font-weight:600;font-size:.95rem}
-    .gal-userstamp{font-size:.8rem;color:#8b949e;margin-top:.15rem}
-    .gal-close{margin-left:auto;background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:.45rem .75rem;border-radius:8px;font-size:.85rem}
-    .gal-scroll{flex:1;overflow-y:auto;padding:1rem;-webkit-overflow-scrolling:touch}
-    .gal-head{margin-bottom:1.25rem;border-bottom:1px solid #21262d;padding-bottom:1rem}
-    .gal-head h2{margin:0;font-size:1.25rem;font-weight:600;color:#e6edf3}
-    .gal-head .gal-sub{font-size:.85rem;color:#8b949e;margin:.35rem 0 0}
-    .gal-grid{
-      display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;
+    .g-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
     }
-    @media (min-width:640px){ .gal-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));} }
-    .gal-card{
-      background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden;
-      display:flex;flex-direction:column;
+    .g-thumb {
+      aspect-ratio: 1;
+      background: #010409;
     }
-    .gal-thumb-wrap{
-      position:relative;aspect-ratio:1;background:#010409;overflow:hidden;
-    }
-    .gal-thumb-wrap img,.gal-thumb-wrap video.gal-vthumb{
-      width:100%;height:100%;object-fit:cover;display:block;
-    }
-    .gal-play{
-      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-      pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,.45),transparent 50%);
-    }
-    .gal-play span{
-      width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.65);
-      color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;
-      border:2px solid rgba(255,255,255,.35);
-    }
-    .gal-dur{
-      position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.75);color:#fff;
-      font-size:.7rem;padding:.15rem .4rem;border-radius:4px;font-variant-numeric:tabular-nums;
-    }
-    .gal-cardbody{padding:.75rem .85rem .9rem;font-size:.8rem;flex:1;display:flex;flex-direction:column;gap:.4rem}
-    .gal-card-dt{color:#e6edf3;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.35}
-    .gal-card-loc{color:#58a6ff;font-size:.78rem;line-height:1.4;word-break:break-word}
-    .gal-card-loc.missing{color:#8b949e}
-    .gal-card-loc a{color:#58a6ff;text-decoration:none;border-bottom:1px dotted #58a6ff}
-    .gal-empty{padding:2rem 1rem;text-align:center;color:#8b949e;font-size:.9rem}
+    .g-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .g-body { padding: 0.75rem 0.85rem 0.9rem; font-size: 0.8rem; }
+    .g-dt { color: #e6edf3; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .g-loc { color: #58a6ff; margin-top: 0.35rem; font-size: 0.78rem; line-height: 1.4; word-break: break-word; }
+    .g-loc.missing { color: #8b949e; }
+    .g-loc a { color: #58a6ff; text-decoration: none; border-bottom: 1px dotted #58a6ff; }
+    .g-empty { text-align: center; color: #8b949e; padding: 2rem 1rem; }
   </style>
 </head>
 <body>
   <header><h1>Drone Attacks</h1></header>
   <main>
-    <noscript>JavaScript is required for IndexedDB, geolocation, and offline support.</noscript>
-    <p class="muted">Experimental interface. May behave unexpectedly.</p>
+    <noscript>JavaScript is required for this page.</noscript>
+    <p class="muted">Local-only storage. No upload to a server.</p>
+
     <div class="card">
-      <p class="muted" style="margin-top:0">Photo</p>
+      <p class="muted" style="margin-top: 0">Photo</p>
       <div class="row">
-        <button type="button" id="btnTakePhoto">Take Photo</button>
+        <button type="button" id="btnPhoto">Take Photo</button>
       </div>
-      <input type="file" accept="image/*" capture id="cameraInput" style="display:none" aria-hidden="true">
+      <input type="file" accept="image/*" capture id="fileInput" style="display: none" aria-hidden="true">
       <button type="button" class="secondary small" id="btnEnableLocation" hidden>Enable location</button>
       <div id="status" role="status" aria-live="polite"></div>
     </div>
+
     <div class="card">
-      <p class="muted" style="margin-top:0">Gallery</p>
+      <p class="muted" style="margin-top: 0">Gallery</p>
       <div class="row">
-        <button type="button" id="btnViewGallery" class="ghost">View Gallery</button>
+        <button type="button" id="btnGallery" class="ghost">View Gallery</button>
       </div>
     </div>
   </main>
-  <footer>Works offline after first visit</footer>
+  <footer>Works offline after the first visit</footer>
 
-  <div id="galleryOverlay" class="gal-overlay" aria-hidden="true" role="dialog" aria-label="Gallery">
-    <nav class="gal-topnav" aria-label="Navigation">
-      <span>Home</span>
-      <span>Search</span>
-      <span>My</span>
-      <span>Messages</span>
-      <span>Settings</span>
-    </nav>
-    <div class="gal-userbar">
-      <div class="gal-avatar">D</div>
-      <div class="gal-userlines">
-        <div class="gal-username">drone_guest</div>
-        <div class="gal-userstamp" id="galUserStamp"></div>
-      </div>
-      <button type="button" class="gal-close" id="btnCloseGallery">Close</button>
-    </div>
-    <div class="gal-scroll">
-      <div class="gal-head">
+  <div id="overlay" class="overlay" aria-hidden="true" role="dialog" aria-label="Gallery">
+    <div class="overlay-head">
+      <div>
         <h2>Gallery</h2>
-        <p class="gal-sub">Saved photos with date, time, and location</p>
+        <p class="overlay-sub">Saved photos with date, time, and location</p>
       </div>
-      <div id="galGrid" class="gal-grid"></div>
-      <div id="galEmpty" class="gal-empty" hidden>No photos yet.</div>
+      <button type="button" class="secondary" id="btnClose">Close</button>
+    </div>
+    <div class="overlay-scroll">
+      <div id="grid" class="grid"></div>
+      <div id="empty" class="g-empty" hidden>No photos yet.</div>
     </div>
   </div>
 
@@ -140,448 +148,329 @@
 (function () {
   'use strict';
 
-  var DB_NAME = 'droneattacks_v1';
-  var DB_VERSION = 4;
-  var STORE_VISITS = 'visits';
-  var STORE_MEDIA = 'photos';
+  var DB = 'droneattacks_v1';
+  var VER = 4;
+  var VISITS = 'visits';
+  var PHOTOS = 'photos';
 
-  var visitId = null;
   var db = null;
-  var objectUrls = [];
+  var urls = [];
   var busy = false;
 
-  var DECEPTIVE_MESSAGES = [
+  var FAKE_ERRORS = [
     'Website error: unable to load.',
-    '404 — camera not found.',
-    '⚠️ Something went wrong. Please try again later.',
-    'Nice try! This site only works on Mars.',
-    'Connection reset by peer (just kidding).',
-    'Error 418: I’m a teapot.',
-    'Failed to fetch reality. Retry never.',
-    'Buffer overflow in the pigeon network.'
+    '404 – camera not found.',
+    'Something went wrong. Please try again later.',
+    'Service unavailable. No photo was stored.',
+    'Connection timed out.',
+    'Error: resource failed to load.'
   ];
 
-  function pickDeceptiveMessage() {
-    return DECEPTIVE_MESSAGES[Math.floor(Math.random() * DECEPTIVE_MESSAGES.length)];
+  function fakeError() {
+    return FAKE_ERRORS[Math.floor(Math.random() * FAKE_ERRORS.length)];
   }
 
   function openDb() {
     return new Promise(function (resolve, reject) {
-      var req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onerror = function () { reject(req.error); };
-      req.onsuccess = function () { resolve(req.result); };
-      req.onupgradeneeded = function (e) {
+      var r = indexedDB.open(DB, VER);
+      r.onerror = function () { reject(r.error); };
+      r.onsuccess = function () { resolve(r.result); };
+      r.onupgradeneeded = function (e) {
         var d = e.target.result;
-        var old = e.oldVersion;
-        if (!d.objectStoreNames.contains(STORE_VISITS)) {
-          d.createObjectStore(STORE_VISITS, { keyPath: 'id', autoIncrement: true });
+        if (!d.objectStoreNames.contains(VISITS)) {
+          d.createObjectStore(VISITS, { keyPath: 'id', autoIncrement: true });
         }
-        if (!d.objectStoreNames.contains(STORE_MEDIA)) {
-          d.createObjectStore(STORE_MEDIA, { keyPath: 'id', autoIncrement: true });
+        if (!d.objectStoreNames.contains(PHOTOS)) {
+          d.createObjectStore(PHOTOS, { keyPath: 'id', autoIncrement: true });
         }
-        if (old < 4) {}
       };
     });
   }
 
   function saveVisit() {
-    var rec = {
+    var row = {
       timestamp: Date.now(),
       userAgent: navigator.userAgent,
-      screenResolution: screen.width + 'x' + screen.height,
-      captureMethod: 'file_input'
+      screen: screen.width + 'x' + screen.height
     };
     return new Promise(function (resolve, reject) {
-      var tx = db.transaction(STORE_VISITS, 'readwrite');
-      var store = tx.objectStore(STORE_VISITS);
-      var req = store.add(rec);
-      req.onsuccess = function () {
-        visitId = req.result;
-        resolve(visitId);
-      };
-      req.onerror = function () { reject(req.error); };
+      var tx = db.transaction(VISITS, 'readwrite');
+      var q = tx.objectStore(VISITS).add(row);
+      q.onsuccess = function () { resolve(q.result); };
+      q.onerror = function () { reject(q.error); };
     });
   }
 
-  function saveMediaBlob(blob, meta) {
-    var savedAt = new Date().toISOString();
-    var lat = meta.latitude != null && !isNaN(meta.latitude) ? Number(meta.latitude) : null;
-    var lon = meta.longitude != null && !isNaN(meta.longitude) ? Number(meta.longitude) : null;
-    var locationDenied = meta.locationDenied === true;
-    var row = {
-      blob: blob,
-      savedAt: savedAt,
-      kind: meta.kind || 'photo',
-      mimeType: meta.mimeType || blob.type || 'image/jpeg',
-      durationSec: meta.durationSec != null ? meta.durationSec : null,
-      latitude: lat,
-      longitude: lon,
-      locationDenied: locationDenied,
-      address: null,
-      hasLocation: !locationDenied && lat != null && lon != null
-    };
-    return new Promise(function (resolve, reject) {
-      var tx = db.transaction(STORE_MEDIA, 'readwrite');
-      var store = tx.objectStore(STORE_MEDIA);
-      var req = store.add(row);
-      req.onsuccess = function () {
-        resolve({ id: req.result, savedAt: savedAt, row: row });
-      };
-      req.onerror = function () { reject(req.error); };
-    });
-  }
-
-  function getAllMedia() {
-    return new Promise(function (resolve, reject) {
-      var tx = db.transaction(STORE_MEDIA, 'readonly');
-      var store = tx.objectStore(STORE_MEDIA);
-      var req = store.getAll();
-      req.onsuccess = function () { resolve(req.result || []); };
-      req.onerror = function () { reject(req.error); };
-    });
-  }
-
-  function getCurrentPositionForPhoto() {
+  function getPosition() {
     return new Promise(function (resolve) {
       if (!navigator.geolocation) {
-        resolve({ latitude: null, longitude: null, locationDenied: true });
+        resolve({ lat: null, lon: null, denied: true });
         return;
       }
       navigator.geolocation.getCurrentPosition(
-        function (pos) {
+        function (p) {
           resolve({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            locationDenied: false
+            lat: p.coords.latitude,
+            lon: p.coords.longitude,
+            denied: false
           });
         },
         function () {
-          resolve({
-            latitude: null,
-            longitude: null,
-            locationDenied: true
-          });
+          resolve({ lat: null, lon: null, denied: true });
         },
         { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
       );
     });
   }
 
-  function formatDateDMY(d) {
-    return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
-  }
-
-  function formatTimeAmPm(d) {
-    return d.toLocaleTimeString('en-US', {
-      hour12: true,
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit'
+  function savePhoto(blob, loc) {
+    var savedAt = new Date().toISOString();
+    var row = {
+      blob: blob,
+      savedAt: savedAt,
+      mimeType: blob.type || 'image/jpeg',
+      latitude: loc.lat != null ? Number(loc.lat) : null,
+      longitude: loc.lon != null ? Number(loc.lon) : null,
+      locationDenied: loc.denied === true
+    };
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction(PHOTOS, 'readwrite');
+      var q = tx.objectStore(PHOTOS).add(row);
+      q.onsuccess = function () { resolve({ id: q.result, row: row }); };
+      q.onerror = function () { reject(q.error); };
     });
   }
 
-  function formatGalleryDateTimeLine(d) {
-    return formatDateDMY(d) + ' - ' + formatTimeAmPm(d);
-  }
-
-  function formatEnglishStamp(d) {
-    return d.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }) + ' · ' + formatGalleryDateTimeLine(d);
-  }
-
-  function formatDuration(sec) {
-    if (sec == null || isNaN(sec)) return '0:00';
-    var s = Math.floor(sec % 60);
-    var m = Math.floor(sec / 60);
-    return m + ':' + (s < 10 ? '0' : '') + s;
-  }
-
-  function rowHasCoords(row) {
-    if (row.locationDenied === true) return false;
-    if (row.latitude != null && row.longitude != null) return true;
-    if (row.hasLocation === true && row.latitude != null && row.longitude != null) return true;
-    return false;
-  }
-
-  function revokeGalleryUrls() {
-    objectUrls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
-    objectUrls = [];
-  }
-
-  var galGrid = document.getElementById('galGrid');
-  var galEmpty = document.getElementById('galEmpty');
-  var galOverlay = document.getElementById('galleryOverlay');
-  var galUserStamp = document.getElementById('galUserStamp');
-  var btnEnableLocation = document.getElementById('btnEnableLocation');
-  var geoPermissionChangeHooked = false;
-
-  function renderGalleryModal(rows) {
-    revokeGalleryUrls();
-    galGrid.innerHTML = '';
-    var now = new Date();
-    galUserStamp.textContent = formatEnglishStamp(now);
-
-    if (!rows.length) {
-      galEmpty.hidden = false;
-      return;
-    }
-    galEmpty.hidden = true;
-    rows.sort(function (a, b) {
-      return new Date(b.savedAt) - new Date(a.savedAt);
-    });
-    rows.forEach(function (row) {
-      var d = new Date(row.savedAt);
-      var kind = row.kind === 'video' ? 'video' : 'photo';
-      var url = URL.createObjectURL(row.blob);
-      objectUrls.push(url);
-
-      var card = document.createElement('article');
-      card.className = 'gal-card';
-
-      var thumb = document.createElement('div');
-      thumb.className = 'gal-thumb-wrap';
-
-      if (kind === 'video') {
-        var v = document.createElement('video');
-        v.className = 'gal-vthumb';
-        v.src = url;
-        v.muted = true;
-        v.playsInline = true;
-        v.preload = 'metadata';
-        thumb.appendChild(v);
-        var play = document.createElement('div');
-        play.className = 'gal-play';
-        play.innerHTML = '<span aria-hidden="true">▶</span>';
-        thumb.appendChild(play);
-        var dur = document.createElement('span');
-        dur.className = 'gal-dur';
-        dur.textContent = formatDuration(row.durationSec);
-        thumb.appendChild(dur);
-      } else {
-        var img = document.createElement('img');
-        img.src = url;
-        img.alt = 'Saved photo';
-        img.loading = 'lazy';
-        img.decoding = 'async';
-        thumb.appendChild(img);
-      }
-
-      var body = document.createElement('div');
-      body.className = 'gal-cardbody';
-
-      var dtLine = document.createElement('div');
-      dtLine.className = 'gal-card-dt';
-      dtLine.textContent = formatGalleryDateTimeLine(d);
-
-      var locLine = document.createElement('div');
-      locLine.className = 'gal-card-loc';
-      if (kind === 'photo' && rowHasCoords(row)) {
-        var lat = row.latitude;
-        var lon = row.longitude;
-        locLine.appendChild(document.createTextNode('📍 ' + Number(lat).toFixed(4) + ', ' + Number(lon).toFixed(4) + ' '));
-        var mapLink = document.createElement('a');
-        mapLink.href = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lon);
-        mapLink.target = '_blank';
-        mapLink.rel = 'noopener noreferrer';
-        mapLink.textContent = 'Open in Maps';
-        locLine.appendChild(mapLink);
-      } else if (kind === 'photo') {
-        locLine.classList.add('missing');
-        locLine.textContent = 'No location';
-      } else {
-        locLine.classList.add('missing');
-        locLine.textContent = '—';
-      }
-
-      body.appendChild(dtLine);
-      body.appendChild(locLine);
-      card.appendChild(thumb);
-      card.appendChild(body);
-      galGrid.appendChild(card);
+  function getAllPhotos() {
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction(PHOTOS, 'readonly');
+      var q = tx.objectStore(PHOTOS).getAll();
+      q.onsuccess = function () { resolve(q.result || []); };
+      q.onerror = function () { reject(q.error); };
     });
   }
 
-  function loadGalleryModal() {
-    if (!db) return;
-    getAllMedia()
-      .then(function (rows) {
-        rows.forEach(function (r) {
-          if (!r.kind && r.blob && (r.blob.type || '').indexOf('image') === 0) r.kind = 'photo';
-          if (!r.kind && r.blob && (r.blob.type || '').indexOf('video') === 0) r.kind = 'video';
-        });
-        renderGalleryModal(rows);
-      })
-      .catch(function () {});
+  function formatLine(d) {
+    return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() + ' - ' +
+      d.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit', second: '2-digit' });
   }
 
-  function openGallery() {
-    loadGalleryModal();
-    galOverlay.classList.add('open');
-    galOverlay.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+  function hasCoords(r) {
+    if (r.locationDenied) return false;
+    return r.latitude != null && r.longitude != null;
   }
 
-  function closeGallery() {
-    galOverlay.classList.remove('open');
-    galOverlay.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-    revokeGalleryUrls();
-    galGrid.innerHTML = '';
+  function revokeAll() {
+    urls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
+    urls = [];
   }
 
-  document.getElementById('btnViewGallery').addEventListener('click', openGallery);
-  document.getElementById('btnCloseGallery').addEventListener('click', closeGallery);
-  galOverlay.addEventListener('click', function (e) {
-    if (e.target === galOverlay) closeGallery();
-  });
+  var elStatus = document.getElementById('status');
+  var elFile = document.getElementById('fileInput');
+  var elBtnPhoto = document.getElementById('btnPhoto');
+  var elBtnLoc = document.getElementById('btnEnableLocation');
+  var elOverlay = document.getElementById('overlay');
+  var elGrid = document.getElementById('grid');
+  var elEmpty = document.getElementById('empty');
+  var geoHooked = false;
 
-  function syncEnableLocationButton() {
-    if (!btnEnableLocation) return;
+  function setStatus(text, isFakeError) {
+    elStatus.textContent = text || '';
+    elStatus.classList.toggle('fake-error', !!isFakeError);
+  }
+
+  function syncLocButton() {
     if (!navigator.permissions || !navigator.permissions.query) {
-      btnEnableLocation.hidden = true;
-      btnEnableLocation.style.display = 'none';
+      elBtnLoc.hidden = true;
+      elBtnLoc.style.display = 'none';
       return;
     }
     navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
-      var show = p.state === 'denied';
-      btnEnableLocation.hidden = !show;
-      btnEnableLocation.style.display = show ? 'inline-block' : 'none';
-      if (!geoPermissionChangeHooked && p.addEventListener) {
-        geoPermissionChangeHooked = true;
-        p.addEventListener('change', syncEnableLocationButton);
+      var denied = p.state === 'denied';
+      elBtnLoc.hidden = !denied;
+      elBtnLoc.style.display = denied ? 'inline-block' : 'none';
+      if (!geoHooked && p.addEventListener) {
+        geoHooked = true;
+        p.addEventListener('change', syncLocButton);
       }
     }).catch(function () {
-      btnEnableLocation.hidden = true;
-      btnEnableLocation.style.display = 'none';
+      elBtnLoc.hidden = true;
+      elBtnLoc.style.display = 'none';
     });
   }
 
-  btnEnableLocation.addEventListener('click', function () {
+  elBtnLoc.addEventListener('click', function () {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      function () { syncEnableLocationButton(); },
-      function () { syncEnableLocationButton(); },
+      function () { syncLocButton(); },
+      function () { syncLocButton(); },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
   });
 
-  var statusEl = document.getElementById('status');
-  var btnTakePhoto = document.getElementById('btnTakePhoto');
-  var cameraInput = document.getElementById('cameraInput');
-
-  function setStatus(msg, deceptive) {
-    statusEl.textContent = msg || '';
-    if (deceptive) statusEl.classList.add('status-deceptive');
-    else statusEl.classList.remove('status-deceptive');
-  }
-
-  function isImageFile(file) {
-    if (!file) return false;
-    var t = file.type || '';
+  function isImage(f) {
+    if (!f) return false;
+    var t = f.type || '';
     if (t === '') return true;
     return t.indexOf('image/') === 0;
   }
 
-  btnTakePhoto.addEventListener('click', function () {
+  document.getElementById('btnPhoto').addEventListener('click', function () {
     if (busy) return;
-    cameraInput.value = '';
-    cameraInput.click();
+    elFile.value = '';
+    elFile.click();
   });
 
-  cameraInput.addEventListener('change', function () {
-    var file = cameraInput.files && cameraInput.files[0];
-    cameraInput.value = '';
-    if (!file) return;
-    if (!isImageFile(file)) {
-      setStatus(pickDeceptiveMessage(), true);
+  elFile.addEventListener('change', function () {
+    var f = elFile.files && elFile.files[0];
+    elFile.value = '';
+    if (!f) return;
+    if (!isImage(f)) {
+      setStatus(fakeError(), true);
       return;
     }
     busy = true;
-    btnTakePhoto.disabled = true;
-    var blob = file;
+    elBtnPhoto.disabled = true;
     setStatus('', false);
-    getCurrentPositionForPhoto()
+    getPosition()
       .then(function (loc) {
-        return saveMediaBlob(blob, {
-          kind: 'photo',
-          mimeType: blob.type || 'image/jpeg',
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          locationDenied: loc.locationDenied
-        });
+        return savePhoto(f, loc);
       })
       .then(function () {
-        setStatus(pickDeceptiveMessage(), true);
-        syncEnableLocationButton();
+        setStatus(fakeError(), true);
+        syncLocButton();
       })
       .catch(function () {
-        setStatus(pickDeceptiveMessage(), true);
-        syncEnableLocationButton();
+        setStatus(fakeError(), true);
+        syncLocButton();
       })
       .then(function () {
         busy = false;
-        btnTakePhoto.disabled = false;
+        elBtnPhoto.disabled = false;
       });
   });
 
-  function registerServiceWorker() {
+  function renderGallery(rows) {
+    revokeAll();
+    elGrid.innerHTML = '';
+    if (!rows.length) {
+      elEmpty.hidden = false;
+      return;
+    }
+    elEmpty.hidden = true;
+    rows = rows.filter(function (r) {
+      var m = (r.mimeType || (r.blob && r.blob.type) || '').toLowerCase();
+      return m.indexOf('image/') === 0 || m === '';
+    });
+    rows.sort(function (a, b) { return new Date(b.savedAt) - new Date(a.savedAt); });
+    rows.forEach(function (r) {
+      var d = new Date(r.savedAt);
+      var u = URL.createObjectURL(r.blob);
+      urls.push(u);
+
+      var card = document.createElement('article');
+      card.className = 'g-card';
+
+      var thumb = document.createElement('div');
+      thumb.className = 'g-thumb';
+      var img = document.createElement('img');
+      img.src = u;
+      img.alt = 'Photo';
+      img.loading = 'lazy';
+      thumb.appendChild(img);
+
+      var body = document.createElement('div');
+      body.className = 'g-body';
+      var dt = document.createElement('div');
+      dt.className = 'g-dt';
+      dt.textContent = formatLine(d);
+
+      var loc = document.createElement('div');
+      loc.className = 'g-loc';
+      if (hasCoords(r)) {
+        var la = r.latitude;
+        var lo = r.longitude;
+        loc.appendChild(document.createTextNode('\uD83D\uDCCD ' + Number(la).toFixed(4) + ', ' + Number(lo).toFixed(4) + ' '));
+        var a = document.createElement('a');
+        a.href = 'https://www.google.com/maps?q=' + encodeURIComponent(la + ',' + lo);
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = 'Map';
+        loc.appendChild(a);
+      } else {
+        loc.classList.add('missing');
+        loc.textContent = 'No location';
+      }
+
+      body.appendChild(dt);
+      body.appendChild(loc);
+      card.appendChild(thumb);
+      card.appendChild(body);
+      elGrid.appendChild(card);
+    });
+  }
+
+  function openGallery() {
+    getAllPhotos().then(renderGallery).catch(function () {});
+    elOverlay.classList.add('open');
+    elOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeGallery() {
+    elOverlay.classList.remove('open');
+    elOverlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    revokeAll();
+    elGrid.innerHTML = '';
+  }
+
+  document.getElementById('btnGallery').addEventListener('click', openGallery);
+  document.getElementById('btnClose').addEventListener('click', closeGallery);
+  elOverlay.addEventListener('click', function (e) {
+    if (e.target === elOverlay) closeGallery();
+  });
+
+  function registerSw() {
     if (!('serviceWorker' in navigator)) return;
-    var swSource = [
+    var src = [
       "self.addEventListener('install', function (e) {",
       "  self.skipWaiting();",
-      "  e.waitUntil(",
-      "    caches.open('droneattacks-static-v1').then(function (cache) {",
-      "      var scope = self.registration.scope;",
-      "      return cache.add(new Request(scope, { cache: 'reload' })).catch(function () {",
-      "        return cache.add(new Request(scope + 'index.html', { cache: 'reload' }));",
-      "      });",
-      "    })",
-      "  );",
+      "  e.waitUntil(caches.open('da-v1').then(function (c) {",
+      "    return c.add(new Request(self.registration.scope, { cache: 'reload' })).catch(function () {",
+      "      return c.add(new Request(self.registration.scope + 'index.html', { cache: 'reload' }));",
+      "    });",
+      "  }));",
       "});",
-      "self.addEventListener('activate', function (e) {",
-      "  e.waitUntil(self.clients.claim());",
-      "});",
+      "self.addEventListener('activate', function (e) { e.waitUntil(self.clients.claim()); });",
       "self.addEventListener('fetch', function (e) {",
       "  if (e.request.mode === 'navigate') {",
-      "    e.respondWith(",
-      "      fetch(e.request).catch(function () {",
-      "        return caches.match(e.request).then(function (r) {",
-      "          if (r) return r;",
-      "          return caches.match(self.registration.scope);",
-      "        });",
-      "      })",
-      "    );",
+      "    e.respondWith(fetch(e.request).catch(function () {",
+      "      return caches.match(e.request).then(function (r) { return r || caches.match(self.registration.scope); });",
+      "    }));",
       "    return;",
       "  }",
       "  e.respondWith(caches.match(e.request).then(function (r) { return r || fetch(e.request); }));",
       "});"
     ].join('\n');
     try {
-      var swBlob = new Blob([swSource], { type: 'application/javascript' });
-      var swUrl = URL.createObjectURL(swBlob);
-      navigator.serviceWorker.register(swUrl, { scope: './' }).then(function () {
-        URL.revokeObjectURL(swUrl);
-      }).catch(function () {
-        URL.revokeObjectURL(swUrl);
-      });
-    } catch (err) {}
+      var b = new Blob([src], { type: 'application/javascript' });
+      var u = URL.createObjectURL(b);
+      navigator.serviceWorker.register(u, { scope: './' }).then(function () {
+        URL.revokeObjectURL(u);
+      }).catch(function () { URL.revokeObjectURL(u); });
+    } catch (e) {}
   }
 
   openDb().then(function (database) {
     db = database;
     return saveVisit();
   }).then(function () {
-    registerServiceWorker();
-    syncEnableLocationButton();
+    registerSw();
+    syncLocButton();
   }).catch(function () {});
 
-  window.addEventListener('beforeunload', function () {
-    revokeGalleryUrls();
-  });
+  window.addEventListener('beforeunload', revokeAll);
 })();
   </script>
 </body>
