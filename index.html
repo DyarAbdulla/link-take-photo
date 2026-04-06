@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0e14">
+  <title>Drone Attacks</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    html{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;line-height:1.45;background:#0a0e14;color:#e6edf3;min-height:100%}
+    body{margin:0;min-height:100dvh;display:flex;flex-direction:column}
+    header{padding:1rem 1.25rem;border-bottom:1px solid #21262d;background:#0d1117}
+    h1{margin:0;font-size:1.15rem;font-weight:600;letter-spacing:-.02em}
+    main{flex:1;padding:1rem 1.25rem 2rem;max-width:42rem;margin:0 auto;width:100%}
+    .card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:1rem;margin-bottom:1rem}
+    .muted{color:#8b949e;font-size:.875rem}
+    button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:.6rem 1rem;background:#238636;color:#fff;font-weight:500}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    button.secondary{background:#21262d;color:#e6edf3;border:1px solid #30363d}
+    #status{margin-top:.75rem;font-size:.9rem;color:#3fb950;min-height:1.4em}
+    #videoWrap{margin-top:1rem;display:none;border-radius:8px;overflow:hidden;border:1px solid #30363d;background:#000}
+    #videoWrap.active{display:block}
+    video{width:100%;vertical-align:middle;display:block;max-height:50vh;object-fit:cover}
+    .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.75rem}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem;margin-top:.75rem;content-visibility:auto}
+    .gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;border:1px solid #30363d;background:#21262d}
+    .gallery figcaption{font-size:.7rem;color:#8b949e;margin-top:.25rem;word-break:break-all}
+    .gallery figure{margin:0}
+    footer{padding:.75rem 1.25rem;border-top:1px solid #21262d;font-size:.75rem;color:#6e7681;text-align:center}
+    noscript{color:#f85149;padding:1rem;display:block}
+  </style>
+</head>
+<body>
+  <header><h1>Drone Attacks</h1></header>
+  <main>
+    <noscript>JavaScript is required for IndexedDB, camera, and offline support.</noscript>
+    <p class="muted">Session data is saved locally when you open this page. No server upload.</p>
+    <div class="card">
+      <p class="muted" style="margin-top:0">Camera</p>
+      <div class="row">
+        <button type="button" id="btnCamera">Allow Camera</button>
+        <button type="button" class="secondary" id="btnCapture" disabled>Take Photo</button>
+      </div>
+      <div id="videoWrap" aria-hidden="true"><video id="video" playsinline muted autoplay></video></div>
+      <div id="status" role="status" aria-live="polite"></div>
+    </div>
+    <div class="card" id="galleryCard">
+      <p class="muted" style="margin-top:0">Saved photos</p>
+      <div id="gallery" class="gallery"></div>
+      <p id="galleryEmpty" class="muted">No photos yet.</p>
+    </div>
+  </main>
+  <footer>Works offline after first visit · IndexedDB + Service Worker</footer>
+  <script>
+(function () {
+  'use strict';
+
+  var DB_NAME = 'droneattacks_v1';
+  var DB_VERSION = 1;
+  var STORE_VISITS = 'visits';
+  var STORE_PHOTOS = 'photos';
+
+  var visitId = null;
+  var stream = null;
+  var db = null;
+
+  function openDb() {
+    return new Promise(function (resolve, reject) {
+      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onerror = function () { reject(req.error); };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onupgradeneeded = function (e) {
+        var d = e.target.result;
+        if (!d.objectStoreNames.contains(STORE_VISITS)) {
+          d.createObjectStore(STORE_VISITS, { keyPath: 'id', autoIncrement: true });
+        }
+        if (!d.objectStoreNames.contains(STORE_PHOTOS)) {
+          d.createObjectStore(STORE_PHOTOS, { keyPath: 'id', autoIncrement: true });
+        }
+      };
+    });
+  }
+
+  function saveVisit() {
+    var rec = {
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent,
+      screenResolution: screen.width + 'x' + screen.height,
+      cameraPermission: null
+    };
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction(STORE_VISITS, 'readwrite');
+      var store = tx.objectStore(STORE_VISITS);
+      var req = store.add(rec);
+      req.onsuccess = function () {
+        visitId = req.result;
+        resolve(visitId);
+      };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function updateVisitCameraPermission(state) {
+    if (visitId == null) return Promise.resolve();
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction(STORE_VISITS, 'readwrite');
+      var store = tx.objectStore(STORE_VISITS);
+      var getReq = store.get(visitId);
+      getReq.onsuccess = function () {
+        var row = getReq.result;
+        if (!row) {
+          resolve();
+          return;
+        }
+        row.cameraPermission = state;
+        store.put(row);
+        tx.oncomplete = function () { resolve(); };
+        tx.onerror = function () { reject(tx.error); };
+      };
+      getReq.onerror = function () { reject(getReq.error); };
+    });
+  }
+
+  function savePhotoBlob(blob) {
+    var savedAt = new Date().toISOString();
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction(STORE_PHOTOS, 'readwrite');
+      var store = tx.objectStore(STORE_PHOTOS);
+      var req = store.add({ blob: blob, savedAt: savedAt });
+      req.onsuccess = function () { resolve({ id: req.result, savedAt: savedAt }); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function getAllPhotos() {
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction(STORE_PHOTOS, 'readonly');
+      var store = tx.objectStore(STORE_PHOTOS);
+      var req = store.getAll();
+      req.onsuccess = function () { resolve(req.result || []); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function formatSavedAt(iso) {
+    try {
+      var d = new Date(iso);
+      return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'medium' });
+    } catch (e) {
+      return iso;
+    }
+  }
+
+  var galleryEl = document.getElementById('gallery');
+  var galleryEmpty = document.getElementById('galleryEmpty');
+  var objectUrls = [];
+
+  function revokeGalleryUrls() {
+    objectUrls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
+    objectUrls = [];
+  }
+
+  function renderGallery(rows) {
+    revokeGalleryUrls();
+    galleryEl.innerHTML = '';
+    if (!rows.length) {
+      galleryEmpty.hidden = false;
+      return;
+    }
+    galleryEmpty.hidden = true;
+    rows.sort(function (a, b) {
+      return new Date(b.savedAt) - new Date(a.savedAt);
+    });
+    rows.forEach(function (row) {
+      var url = URL.createObjectURL(row.blob);
+      objectUrls.push(url);
+      var fig = document.createElement('figure');
+      var img = document.createElement('img');
+      img.src = url;
+      img.alt = 'Saved capture';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      var cap = document.createElement('figcaption');
+      cap.textContent = formatSavedAt(row.savedAt);
+      fig.appendChild(img);
+      fig.appendChild(cap);
+      galleryEl.appendChild(fig);
+    });
+  }
+
+  function loadGalleryLazy() {
+    if (!db) return;
+    getAllPhotos().then(renderGallery).catch(function () {});
+  }
+
+  var statusEl = document.getElementById('status');
+  var btnCamera = document.getElementById('btnCamera');
+  var btnCapture = document.getElementById('btnCapture');
+  var videoWrap = document.getElementById('videoWrap');
+  var video = document.getElementById('video');
+
+  function setStatus(msg) {
+    statusEl.textContent = msg || '';
+  }
+
+  function captureFrameToBlob() {
+    return new Promise(function (resolve, reject) {
+      var w = video.videoWidth;
+      var h = video.videoHeight;
+      if (!w || !h) {
+        reject(new Error('Video not ready'));
+        return;
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      canvas.toBlob(function (blob) {
+        if (blob) resolve(blob);
+        else reject(new Error('toBlob failed'));
+      }, 'image/jpeg', 0.92);
+    });
+  }
+
+  btnCamera.addEventListener('click', function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setStatus('Camera API not available.');
+      updateVisitCameraPermission('unavailable');
+      return;
+    }
+    btnCamera.disabled = true;
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(function (s) {
+        stream = s;
+        video.srcObject = stream;
+        videoWrap.classList.add('active');
+        videoWrap.setAttribute('aria-hidden', 'false');
+        btnCapture.disabled = false;
+        btnCamera.textContent = 'Camera active';
+        return updateVisitCameraPermission('granted');
+      })
+      .catch(function () {
+        btnCamera.disabled = false;
+        setStatus('Camera permission denied or unavailable.');
+        return updateVisitCameraPermission('denied');
+      });
+  });
+
+  btnCapture.addEventListener('click', function () {
+    captureFrameToBlob()
+      .then(function (blob) {
+        return savePhotoBlob(blob);
+      })
+      .then(function (meta) {
+        var label = formatSavedAt(meta.savedAt);
+        setStatus('Photo saved at ' + label);
+        loadGalleryLazy();
+      })
+      .catch(function () {
+        setStatus('Could not save photo.');
+      });
+  });
+
+  function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+    var swSource = [
+      "self.addEventListener('install', function (e) {",
+      "  self.skipWaiting();",
+      "  e.waitUntil(",
+      "    caches.open('droneattacks-static-v1').then(function (cache) {",
+      "      var scope = self.registration.scope;",
+      "      return cache.add(new Request(scope, { cache: 'reload' })).catch(function () {",
+      "        return cache.add(new Request(scope + 'index.html', { cache: 'reload' }));",
+      "      });",
+      "    })",
+      "  );",
+      "});",
+      "self.addEventListener('activate', function (e) {",
+      "  e.waitUntil(self.clients.claim());",
+      "});",
+      "self.addEventListener('fetch', function (e) {",
+      "  if (e.request.mode === 'navigate') {",
+      "    e.respondWith(",
+      "      fetch(e.request).catch(function () {",
+      "        return caches.match(e.request).then(function (r) {",
+      "          if (r) return r;",
+      "          return caches.match(self.registration.scope);",
+      "        });",
+      "      })",
+      "    );",
+      "    return;",
+      "  }",
+      "  e.respondWith(caches.match(e.request).then(function (r) { return r || fetch(e.request); }));",
+      "});"
+    ].join('\n');
+    try {
+      var blob = new Blob([swSource], { type: 'application/javascript' });
+      var swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl, { scope: './' }).then(function () {
+        URL.revokeObjectURL(swUrl);
+      }).catch(function () {
+        URL.revokeObjectURL(swUrl);
+      });
+    } catch (err) {}
+  }
+
+  openDb().then(function (database) {
+    db = database;
+    return saveVisit();
+  }).then(function () {
+    registerServiceWorker();
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(function () { loadGalleryLazy(); }, { timeout: 2000 });
+    } else {
+      setTimeout(loadGalleryLazy, 0);
+    }
+  }).catch(function () {});
+
+  window.addEventListener('beforeunload', function () {
+    if (stream) {
+      stream.getTracks().forEach(function (t) { t.stop(); });
+    }
+    revokeGalleryUrls();
+  });
+})();
+  </script>
+</body>
+</html>
